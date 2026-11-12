@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ဖရဲသီး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ ဖရဲသီးခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1587049352847-4d5b1b1f7d4b?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #ef4444;
+            /* ဖရဲသီးအရောင် (Red) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">ဖရဲသီး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon1.jpg') }}" alt="Watermelon Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon2.jpg') }}" alt="Watermelon Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon3.jpg') }}"
+                        alt="Watermelon Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - ရာသီဥတုနှင့် မြေဆီလွှာ
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရာသီဥတု:</strong> အပူချိန် ၂၄°C မှ ၃၅°C ကြားရှိသော နွေးထွေးသည့် ရာသီဥတုတွင်
+                            အကောင်းဆုံး ကြီးထွားသည်။ အပူချိန်လွန်းခြင်း သို့မဟုတ် အေးလွန်းခြင်းသည် အပင်ကြီးထွားမှုကို
+                            နှေးကွေးစေသည်။</li>
+                        <li><strong>မြေဆီလွှာ:</strong> ရေနုတ်မြောင်းကောင်းမွန်ပြီး လေဝင်လေထွက်ကောင်းသည့် သဲဝန်းဆန်သော
+                            နုန်းမြေ (Sandy Loam Soil) သည် ဖရဲစိုက်ပျိုးရန် အသင့်တော်ဆုံးဖြစ်သည်။</li>
+                        <li><strong>မြေဓာတ်:</strong> မြေ၏ ချဉ်ငန်ဓာတ် pH ၆.၀ မှ ၆.၈ အကြားရှိရပါမည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - မျိုးစေ့ရွေးချယ်ခြင်းနှင့်
+                        အပင်ပေါက်ခိုင်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးစေ့:</strong> စျေးကွက်လိုအပ်ချက်နှင့် ကိုက်ညီပြီး ရောဂါဒဏ်ခံနိုင်ရည်ရှိသော F1
+                            Hybrid စက်ရုံထုတ် မျိုးစေ့များကို ရွေးချယ်သုံးစွဲပါ။</li>
+                        <li><strong>စိမ်မြှုပ်ခြင်း:</strong> မျိုးစေ့များကို ရေနွေးနွေး (၄၀°C ခန့်) တွင် ၃-၄ နာရီကြာ
+                            စိမ်ပါ။ ထို့နောက် စိုစွတ်သော အဝတ်ဖြင့် အပင်ပေါက်သည်အထိ ၁-၂ ရက်ခန့် အုပ်ထားပါ။</li>
+                        <li><strong>ပျိုးထောင်ခြင်း:</strong> အပင်ပေါက်လာသော မျိုးစေ့များကို ပျိုးဗန်း (Plug Tray)
+                            သို့မဟုတ် ပလတ်စတစ်အိတ်များတွင် ပျိုးမြေဖြင့် ၁၀-၁၄ ရက်ခန့် စနစ်တကျ ပျိုးထောင်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - မြေပြင်ဆင်ခြင်းနှင့်
+                        စိုက်ပျိုးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေပြုပြင်ခြင်း:</strong> မြေကို ထွန် ၃-၄ စာ နက်နက်ထွန်ယက်ပါ။ ထွန်ယက်ချိန်တွင်
+                            နွားချေး/ကြက်ချေး ကောင်းစွာဆွေးပြီးသား သဘာဝမြေသြဇာများကို အလုံအလောက် ထည့်သွင်းပေးပါ။</li>
+                        <li><strong>ဘောင်ဖော်ခြင်း:</strong> ဘောင်အကျယ် ၅-၆ ပေနှင့် ဘောင်အမြင့် ၁ ပေခန့်ရှိသော
+                            စိုက်ဘောင်များ ပြုလုပ်ပါ။ စိုက်ဘောင်ပေါ်တွင် ငွေရောင်-အနက်ရောင် ပလတ်စတစ်စလွှာ (Plastic Mulch
+                            Film) ခြုံပေးခြင်းဖြင့် ပေါင်းမြက်များ ထွက်ခြင်းကို ကာကွယ်နိုင်ပြီး မြေဆီလွှာအစိုဓာတ်ကို
+                            ထိန်းသိမ်းပေးပါသည်။</li>
+                        <li><strong>အကွာအဝေး:</strong> အပင်တစ်ပင်နှင့်တစ်ပင် ၃-၄ ပေ၊ အတန်းတစ်တန်းနှင့်တစ်တန်း ၈-၁၀ ပေ
+                            ကွာခြား၍ စိုက်ပျိုးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - ရေသွင်းခြင်းနှင့်
+                        မြေသြဇာကျွေးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေသွင်းခြင်း:</strong> ရေစက်ချစနစ် (Drip Irrigation) ကို အသုံးပြုပါက
+                            အကောင်းဆုံးဖြစ်သည်။ အပွင့်ပွင့်ချိန်နှင့် သီးကင်းဝင်ချိန်တွင် ရေကို မပြတ်စေဘဲ ပုံမှန်ပေးရန်
+                            လိုအပ်သည်။ ရိတ်သိမ်းခါနီး ၇-၁၀ ရက်အလိုတွင် ရေဖြတ်ပေးရမည်။ (ရေဖြတ်ခြင်းက အသီး၏ အချိုဓာတ်ကို
+                            မြင့်မားစေသည်)</li>
+                        <li><strong>မြေသြဇာကျွေးခြင်း:</strong> စိုက်ပျိုးစဉ်တွင် NPK အချိုးညီ အခြေခံမြေသြဇာ၊
+                            နွယ်တက်ချိန်တွင် နိုက်ထရိုဂျင် (N) မြင့်မားသော မြေသြဇာ၊ သီးကြီးချိန်တွင် ပိုတက်စီယမ် (K)
+                            နှင့် ကယ်လ်စီယမ် (Ca) ကြွယ်ဝသော မြေသြဇာများကို အဆင့်ဆင့် ကျွေးပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - ကိုင်းဖြတ်ခြင်းနှင့်
+                        သီးညှိခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>နွယ်ကိုင်းထိန်းခြင်း:</strong> အပင်တစ်ပင်လျှင် ပင်မနွယ် ၁ ပင်နှင့် သန်မာသော
+                            ဘေးကိုင်း ၂-၃ ပင်သာ ချန်ထားပြီး ကျန်ဘေးကိုင်းပိုများကို ဖြတ်ထုတ်ပေးပါ။</li>
+                        <li><strong>သီးညှိခြင်း:</strong> အသီးအရွယ်အစား ကြီးထွားပြီး အရည်အသွေးကောင်းမွန်စေရန်အတွက်
+                            အပင်တစ်ပင်လျှင် ၁ သီး သို့မဟုတ် ၂ သီးသာ ချန်ထားပြီး ကျန်သီးကင်းများကို ဖယ်ရှားပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) - ပိုးမွှားရောဂါနှင့်
+                        ရိတ်သိမ်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပိုးမွှားရောဂါ:</strong> ယင်ဖြူ၊ သရစ်ပိုး၊ နီမြှောင်ပိုး၊ ကျိုင်းပိုး စသည့်
+                            စုတ်ပိုးများကို အဓိက သတိပြု ကာကွယ်ပါ။ ဒေါင်းနီမှိုရောဂါ (Downy Mildew) နှင့် ဖရဲညှိုးသေရောဂါ
+                            (Fusarium Wilt) တို့ အဓိက ကျရောက်တတ်ပါသည်။ သီးနှံလှည့်ပတ်စိုက်ပျိုးခြင်း (Crop Rotation)
+                            ပြုလုပ်ပါ၊ ပိုးသတ်ဆေးနှင့် မှိုသတ်ဆေးများကို လိုအပ်သလို အလှည့်ကျ သုံးစွဲပါ။</li>
+                        <li><strong>ရိတ်သိမ်းခြင်း:</strong> စိုက်ပျိုးပြီး ရက်ပေါင်း ၇၅ မှ ၉၀ အတွင်း
+                            ရိတ်သိမ်းနိုင်ပါသည်။ အသီးနှင့် ကပ်နေသော နွယ်မလိပ်/နားရွက် ခြောက်သွေ့သွားခြင်း၊ အသီးအောက်ခြေ
+                            မြေထိမှန်းနေရာသည် အဝါရောင်ပြောင်းသွားခြင်း၊ အသီးကို ပုတ်ကြည့်ပါက အသံတုန်တုန် (Hollow sound)
+                            ထွက်ခြင်းတို့ ဖြစ်သည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Watermelon
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon1.jpg') }}" alt="Watermelon Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon2.jpg') }}" alt="Watermelon Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon3.jpg') }}"
+                        alt="Watermelon Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Climate and Soil</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Climate:</strong> Thrives in warm climates with temperatures between 24°C and 35°C.
+                            Extreme cold or excessive heat retards plant growth.</li>
+                        <li><strong>Soil:</strong> Well-drained sandy loam soil rich in organic matter is ideal for root
+                            development and aeration.</li>
+                        <li><strong>Soil pH:</strong> Should strictly be maintained between 6.0 and 6.8.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Seed Selection and Germination
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Seed Selection:</strong> Select high-quality, disease-resistant F1 Hybrid commercial
+                            seeds tailored to local market demand.</li>
+                        <li><strong>Soaking:</strong> Soak seeds in lukewarm water (~40°C) for 3-4 hours, then wrap them
+                            in a moist cloth for 1-2 days until sprouts appear.</li>
+                        <li><strong>Nursery:</strong> Sow sprouted seeds in seedling plug trays or small plastic bags
+                            using nutrient-rich potting mix for 10-14 days before transplanting.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Land Preparation and Planting
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Soil Tillage:</strong> Plow the field deeply (3-4 times) and incorporate adequate
+                            amounts of well-rotted farmyard manure or organic compost.</li>
+                        <li><strong>Raised Bed Formation:</strong> Construct raised beds 5-6 feet wide and approximately
+                            1 foot high to ensure proper drainage. Cover with silver-black plastic mulch to prevent
+                            weeds and conserve moisture.</li>
+                        <li><strong>Spacing:</strong> Maintain 3-4 feet between plants and 8-10 feet between rows.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Water and Fertilizer
+                        Management</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Irrigation:</strong> Drip irrigation is highly recommended. Maintain consistent
+                            moisture during flowering and fruit development. Cease irrigation 7-10 days prior to harvest
+                            to increase fruit sugar concentration (Brix level).</li>
+                        <li><strong>Fertilization:</strong> Apply balanced NPK basal fertilizer during transplanting.
+                            Use high-nitrogen fertilizer during the vining stage, and switch to high-potassium and
+                            calcium fertilizers during fruit setting and development.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Canopy Management and Fruit
+                        Thinning</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pruning:</strong> Retain 1 main vine and 2-3 strong side branches per plant. Prune
+                            all unneeded side shoots to optimize nutrient flow.</li>
+                        <li><strong>Fruit Thinning:</strong> To ensure marketable size and superior quality, retain only
+                            1 to 2 well-shaped fruits per vine and prune off additional fruitlets.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Pest Control and Harvesting
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pests/Diseases:</strong> Watch for sap-sucking pests like aphids, thrips, and
+                            whiteflies. Major diseases include Downy Mildew and Fusarium Wilt. Implement crop rotation
+                            and apply registered pesticides judiciously.</li>
+                        <li><strong>Harvesting:</strong> Ready 75 to 90 days after planting. Indicators: drying of the
+                            tendril nearest to the fruit, the field spot turning creamish-yellow, and a dull, hollow
+                            sound when tapped gently.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกแตงโม</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon1.jpg') }}" alt="Watermelon Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon2.jpg') }}" alt="Watermelon Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon3.jpg') }}"
+                        alt="Watermelon Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: สภาพอากาศและดิน</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>สภาพอากาศ:</strong> เจริญเติบโตได้ดีในสภาพอากาศอบอุ่นที่อุณหภูมิระหว่าง 24°C ถึง
+                            35°C ความเย็นจัดหรือความร้อนจัดจะทำให้การเติบโตช้าลง</li>
+                        <li><strong>ดิน:</strong>
+                            ดินร่วนปนทรายที่ระบายน้ำได้ดีและอุดมด้วยอินทรียวัตถุเหมาะสำหรับการพัฒนาราก</li>
+                        <li><strong>ค่า pH ของดิน:</strong> ควรรักษาไว้ระหว่าง 6.0 ถึง 6.8 อย่างเคร่งครัด</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: การเลือกเมล็ดและการงอก
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือกเมล็ด:</strong> เลือกเมล็ดพันธุ์ลูกผสม F1 เชิงพาณิชย์คุณภาพสูง ต้านทานโรค
+                            ตามความต้องการของตลาดท้องถิ่น</li>
+                        <li><strong>การแช่เมล็ด:</strong> แช่เมล็ดในน้ำอุ่น (~40°C) เป็นเวลา 3-4 ชั่วโมง
+                            จากนั้นห่อด้วยผ้าชุบน้ำหมาดๆ เป็นเวลา 1-2 วันจนงอก</li>
+                        <li><strong>การเพาะกล้า:</strong> หว่านเมล็ดที่งอกแล้วในถาดเพาะหรือถุงพลาสติกเล็กๆ
+                            โดยใช้ดินผสมที่อุดมด้วยสารอาหารเป็นเวลา 10-14 วันก่อนย้ายปลูก</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การเตรียมดินและการปลูก
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การไถพรวน:</strong> ไถพรวนดินให้ลึก (3-4 ครั้ง)
+                            และผสมปุ๋ยคอกหรือปุ๋ยหมักที่ย่อยสลายดีแล้วในปริมาณที่เพียงพอ</li>
+                        <li><strong>การทำแปลงยกสูง:</strong> สร้างแปลงยกสูงกว้าง 5-6 ฟุต สูงประมาณ 1 ฟุต
+                            เพื่อให้ระบายน้ำได้ดี คลุมด้วยพลาสติกคลุมดินสีเงิน-ดำเพื่อป้องกันวัชพืชและรักษาความชื้น</li>
+                        <li><strong>ระยะปลูก:</strong> เว้นระยะห่างระหว่างต้น 3-4 ฟุต และระหว่างแถว 8-10 ฟุต</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การจัดการน้ำและปุ๋ย</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การให้น้ำ:</strong> แนะนำให้ใช้ระบบน้ำหยด รักษาความชื้นสม่ำเสมอในช่วงออกดอกและติดผล
+                            หยุดให้น้ำ 7-10 วันก่อนเก็บเกี่ยวเพื่อเพิ่มความหวาน</li>
+                        <li><strong>การใส่ปุ๋ย:</strong> ใส่ปุ๋ยรองพื้น NPK ที่สมดุลระหว่างการย้ายปลูก
+                            ใช้ปุ๋ยไนโตรเจนสูงในระยะเลื้อย และเปลี่ยนเป็นปุ๋ยโพแทสเซียมและแคลเซียมสูงในระยะติดผลและพัฒนา
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5:
+                        การจัดการทรงพุ่มและการตัดแต่งผล</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การตัดแต่งกิ่ง:</strong> เก็บเถาหลัก 1 เถา และกิ่งข้างที่แข็งแรง 2-3 กิ่งต่อต้น
+                            ตัดแต่งยอดข้างที่ไม่จำเป็นออกเพื่อให้สารอาหารไหลเวียนดีที่สุด</li>
+                        <li><strong>การตัดแต่งผล:</strong> เพื่อให้ได้ขนาดที่ขายได้และคุณภาพดีเยี่ยม
+                            เก็บผลไม้ที่มีรูปร่างดีเพียง 1 ถึง 2 ผลต่อเถา และตัดผลเล็กอื่นๆ ออก</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6:
+                        การควบคุมศัตรูพืชและการเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ศัตรูพืช:</strong> ระวังเพลี้ยอ่อน ไรไฟ และแมลงหวี่ขาว โรคหลัก ได้แก่ โรคราน้ำค้าง
+                            และโรคเหี่ยวจากเชื้อรา ใช้การหมุนเวียนพืชและใช้สารเคมีอย่างระมัดระวัง</li>
+                        <li><strong>การเก็บเกี่ยว:</strong> พร้อมเก็บเกี่ยว 75 ถึง 90 วันหลังปลูก สัญญาณ:
+                            มือจับใกล้ผลแห้ง จุดสัมผัสดินเปลี่ยนเป็นสีเหลืองครีม และมีเสียงกลวงเมื่อเคาะเบาๆ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">西瓜种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon1.jpg') }}" alt="Watermelon Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon2.jpg') }}" alt="Watermelon Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon3.jpg') }}"
+                        alt="Watermelon Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Watermelon+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/watermelon6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：气候与土壤</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>气候：</strong>在24°C至35°C的温暖气候中生长最好。极冷或过热会阻碍植物生长。</li>
+                        <li><strong>土壤：</strong>排水良好、富含有机质的沙壤土最适合根系发育和通气。</li>
+                        <li><strong>土壤pH值：</strong>应严格保持在6.0至6.8之间。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：选种与催芽</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>选种：</strong>选择适合当地市场需求的高品质、抗病F1杂交商业种子。</li>
+                        <li><strong>浸种：</strong>将种子在温水（约40°C）中浸泡3-4小时，然后用湿布包裹1-2天直至发芽。</li>
+                        <li><strong>育苗：</strong>将发芽的种子播种在育苗盘或小塑料袋中，使用营养丰富的育苗土培育10-14天后移栽。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：整地与种植</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>整地：</strong>深耕（3-4次），并混入足量腐熟的农家肥或有机堆肥。</li>
+                        <li><strong>做高畦：</strong>制作宽5-6英尺、高约1英尺的高畦以确保排水良好。覆盖银黑色地膜以防草保墒。</li>
+                        <li><strong>株行距：</strong>株距3-4英尺，行距8-10英尺。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：水分与肥料管理</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>灌溉：</strong>强烈建议使用滴灌。在开花和果实发育期间保持水分一致。采收前7-10天停止灌溉以提高糖度。</li>
+                        <li><strong>施肥：</strong>移栽时施用平衡的NPK基肥。抽蔓期使用高氮肥，坐果和发育期改用高钾和高钙肥。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：整枝与疏果</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>整枝：</strong>每株保留1条主蔓和2-3条强壮的侧蔓。剪掉所有不需要的侧枝以优化养分流向。</li>
+                        <li><strong>疏果：</strong>为确保可上市的大小和优良品质，每株仅保留1至2个形状良好的果实，并剪掉多余的幼果。</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：病虫害防治与收获</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>病虫害：</strong>注意蚜虫、蓟马和粉虱等刺吸式害虫。主要病害包括霜霉病和枯萎病。实行轮作并合理使用注册农药。</li>
+                        <li><strong>收获：</strong>种植后75至90天成熟。标志：靠近果实的卷须干燥，接触地面的部分变成奶油黄色，轻敲时发出沉闷的空洞声。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/watermelon')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

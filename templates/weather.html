@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ရာသီဥတု အခြေအနေ | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: { sans: ['Inter', 'Padauk', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #farmMap {
+            height: 400px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+
+        .custom-div-icon {
+            background: transparent;
+            border: none;
+        }
+
+        .icon-bg {
+            background-color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            font-size: 20px;
+            border: 2px solid #10b981;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.6);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(16, 185, 129, 0.8);
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased">
+
+    <!-- Navbar -->
+    <nav
+        class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-gray-900 tracking-tight"><i class="fa-solid fa-leaf text-green-400"></i>
+                AgroSmart <span class="text-brand-500">KyaingTong</span></span>
+        </div>
+
+        <div class="flex items-center gap-5 text-sm font-semibold text-gray-600">
+            <button id="alertBell" onclick="toggleAlertPanel()"
+                class="relative text-gray-500 hover:text-brand-600 transition text-lg">
+                🔔
+                <span id="alertBadge"
+                    class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">0</span>
+            </button>
+            <a href="/" class="hover:text-brand-600 transition">ပင်မ</a>
+            <a href="/prices" class="hover:text-brand-600 transition">💰 စျေးနှုန်းများ</a>
+            <a href="/chatbot_similarity" class="hover:text-brand-600 transition">ဆွေးနွေးခန်း</a>
+            <a href="/weather" class="hover:text-brand-600 transition font-bold text-emerald-600">🌤️ မိုးလေဝသ</a>
+
+            <div class="relative">
+                <button onclick="toggleGuideMenu()"
+                    class="hover:text-brand-600 transition flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <i class="fa-solid fa-bars"></i> Menu
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="guideMenu"
+                    class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 text-sm font-normal z-50">
+                    <a href="/news" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">📰
+                       စိုက်ပျိုးရေးသတင်းများ</a>
+                    <a href="/crop_guide_params"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🌱 မြေဆီလွှာ</a>
+                    <a href="/about_kengtung"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">ℹ️
+                        ကျိုင်းတုံအကြောင်း</a>
+                    <a href="/guide" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">❓
+                        အသုံးပြုနည်း</a>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="/admin"
+                class="hover:text-red-600 transition flex items-center gap-1 text-red-600 font-bold ml-2">👑 Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6 w-full space-y-6">
+
+        <!-- ၁။ ရွေးချယ်ထားသော စိုက်ခင်း၏ လက်ရှိအခြေအနေ -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl mx-auto">
+            <div
+                class="bg-gradient-to-br from-orange-400 to-red-500 text-white p-5 rounded-2xl shadow-lg transform hover:scale-105 transition">
+                <div class="text-sm opacity-90 mb-1 font-semibold">🌡️ အပူချိန်</div>
+                <div id="curr-temp" class="text-4xl font-bold">-- °C</div>
+            </div>
+            <div
+                class="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-5 rounded-2xl shadow-lg transform hover:scale-105 transition">
+                <div class="text-sm opacity-90 mb-1 font-semibold">🌧️ မိုးရေချိန်</div>
+                <div id="curr-rain" class="text-4xl font-bold">-- mm</div>
+            </div>
+            <div
+                class="bg-gradient-to-br from-teal-400 to-brand-600 text-white p-5 rounded-2xl shadow-lg transform hover:scale-105 transition">
+                <div class="text-sm opacity-90 mb-1 font-semibold">💧 စိုထိုင်းဆ</div>
+                <div id="curr-humid" class="text-4xl font-bold">-- %</div>
+            </div>
+            <div
+                class="bg-gradient-to-br from-gray-600 to-gray-800 text-white p-5 rounded-2xl shadow-lg transform hover:scale-105 transition">
+                <div class="text-sm opacity-90 mb-1 font-semibold">💨 လေတိုက်နှုန်း</div>
+                <div id="curr-wind" class="text-4xl font-bold">-- m/s</div>
+            </div>
+        </div>
+
+        <!-- စိုက်ခင်းများ၏ မိုးလေဝသမြေပုံ -->
+        <div class="glass-card rounded-2xl shadow-xl p-6 max-w-6xl mx-auto border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🗺️ စိုက်ခင်းရွာများ၏ လက်ရှိ မိုးလေဝသ</h3>
+            <div id="farmMap" class="shadow-inner border border-gray-200"></div>
+            <p class="text-xs text-gray-500 mt-2 text-center">* မြေပုံပေါ်ရှိ Icon များကို နှိပ်ကြည့်ပါ</p>
+        </div>
+
+        <!-- ၂။ ရွေးချယ်ထားသော စိုက်ခင်း၏ ၇ ရက်စာ Chart -->
+        <div class="glass-card rounded-2xl shadow-xl p-6 max-w-6xl mx-auto border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4" id="chart-title">ရက်သတ္တပတ် အတွင်း မိုးလေဝသ</h3>
+            <div class="h-80 w-full">
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ၃။ ကျိုင်းတုံမြို့ အခြေအနေ (City Weather) -->
+        <div class="glass-card rounded-2xl shadow-xl p-6 max-w-6xl mx-auto border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🏙️ ကျိုင်းတုံမြို့ တစ်ခုလုံး၏ ရာသီဥတု</h3>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-orange-50/80 p-4 rounded-xl border border-orange-100">
+                    <div class="text-sm text-gray-500 mb-1 font-semibold">လက်ရှိ အပူချိန်</div>
+                    <div id="city-temp" class="text-2xl font-bold text-orange-600">-- °C</div>
+                </div>
+                <div class="bg-blue-50/80 p-4 rounded-xl border border-blue-100">
+                    <div class="text-sm text-gray-500 mb-1 font-semibold">လက်ရှိ မိုးရေချိန်</div>
+                    <div id="city-rain" class="text-2xl font-bold text-blue-600">-- mm</div>
+                </div>
+            </div>
+            <div class="text-xs text-gray-500 mb-2 font-semibold">📍 အနီးဆုံး စခန်း: <span id="city-station"
+                    class="font-bold text-gray-700"></span></div>
+            <div class="h-64 w-full">
+                <canvas id="cityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ၄။ လာမယ့် ၃ ရက်စာ ခန့်မှန်းချက် (Real Forecast) -->
+        <div class="glass-card rounded-2xl shadow-xl p-6 max-w-6xl mx-auto border border-gray-100 mb-10">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">🌤️ ကျိုင်းတုံမြို့ လာမယ့် ၃ ရက် ခန့်မှန်းချက်</h3>
+            <div id="forecastList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center text-gray-500 py-4 col-span-3">ခန့်မှန်းချက် ရယူနေသည်...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-300 py-10 mt-auto shrink-0">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-green-600 p-2 rounded-lg text-white">🌾</div>
+                    <h2 class="text-2xl font-bold text-white">AgroSmart <span class="text-green-500">KyaingTong</span>
+                    </h2>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    ကျိုင်းတုံဒေသရှိ တောင်သူများအတွက် ခေတ်မီနည်းပညာနှင့် ရာသီဥတုအချက်အလက်များကို အခြေခံပြီး
+                    စိုက်ပျိုးရေးဆိုင်ရာ အကြံပြုချက်များနှင့် ဈေးကွက်အချက်အလက်များကို ပံ့ပိုးပေးနေသော စနစ်ဖြစ်ပါသည်။
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">အမြန်လင့်ခ်များ</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ပင်မစာမျက်နှာ</a></li>
+                    <li><a href="/about_kengtung" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ကျိုင်းတုံအကြောင်း</a></li>
+                    <li><a href="/prices" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> သီးနှံစျေးနှုန်းများ</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">ဆက်သွယ်ရန်</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-green-500"></i>
+                        <span>ကျိုင်းတုံမြို့၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်း၊ မြန်မာနိုင်ငံ</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-green-500"></i>
+                        <span>+95 9 123 456 789</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-green-500"></i>
+                        <span>info@agrosmart.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2026 AgroSmart KyaingTong. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Navbar Menu Toggle
+        function toggleGuideMenu() {
+            document.getElementById('guideMenu').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#guideMenu') && !e.target.closest('button[onclick="toggleGuideMenu()"]')) {
+                document.getElementById('guideMenu').classList.add('hidden');
+            }
+        });
+
+        // Weather Logic
+        let weatherChartInstance = null;
+        let cityChartInstance = null;
+        let allFarmsData = [];
+        let farmMap = null;
+        let farmMarkers = [];
+
+        function initMap() {
+            farmMap = L.map('farmMap').setView([21.29, 99.60], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(farmMap);
+        }
+
+        function getWeatherIcon(rain, temp) {
+            if (rain > 5) return '<i class="fa-solid fa-cloud-showers-heavy text-blue-500"></i>';
+            if (rain > 0.5) return '<i class="fa-solid fa-cloud-rain text-blue-400"></i>';
+            if (temp > 30) return '<i class="fa-solid fa-sun text-orange-500"></i>';
+            return '<i class="fa-solid fa-cloud-sun text-gray-500"></i>';
+        }
+
+        function updateMapMarkers() {
+            if (!farmMap) return;
+            farmMarkers.forEach(marker => farmMap.removeLayer(marker));
+            farmMarkers = [];
+
+            allFarmsData.forEach(farm => {
+                fetch(`/api/weather/full/${farm.farm_id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) return;
+                        let temp = parseFloat(data.latest_weather.temp || 0);
+                        let rain = parseFloat(data.latest_weather.rainfall || 0);
+                        let iconHtml = getWeatherIcon(rain, temp);
+                        let customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div class="icon-bg">${iconHtml}</div>`,
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 20]
+                        });
+                        let lat = farm.latitude || (21.29 + (Math.random() - 0.5) * 0.1);
+                        let lon = farm.longitude || (99.60 + (Math.random() - 0.5) * 0.1);
+                        let marker = L.marker([lat, lon], { icon: customIcon }).addTo(farmMap);
+                        marker.bindPopup(`
+                            <div class="text-center font-sans">
+                                <b class="text-lg text-emerald-700">${farm.farm_name}</b><br>
+                                <span class="text-sm">အပူချိန်: ${temp.toFixed(2)} °C</span><br>
+                                <span class="text-sm">မိုးရေချိန်: ${rain.toFixed(2)} mm</span>
+                            </div>
+                        `);
+                        farmMarkers.push(marker);
+                    })
+                    .catch(err => console.log("Map Marker Error:", err));
+            });
+        }
+
+        window.addEventListener('load', () => {
+            fetch('/api/farms').then(res => res.json()).then(data => {
+                allFarmsData = data;
+                initMap();
+                updateMapMarkers();
+                if (data.length > 0) {
+                    loadWeather(data[0].farm_id);
+                }
+            });
+            loadCityWeather();
+            loadForecast();
+        });
+
+        function loadWeather(farmId) {
+            fetch(`/api/weather/full/${farmId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) return alert(data.error);
+                    let temp = data.latest_weather.temp ? parseFloat(data.latest_weather.temp).toFixed(2) : '--';
+                    let rain = data.latest_weather.rainfall ? parseFloat(data.latest_weather.rainfall).toFixed(2) : '--';
+                    let humid = data.latest_weather.humidity ? parseFloat(data.latest_weather.humidity).toFixed(2) : '--';
+                    let wind = data.latest_weather.wind ? parseFloat(data.latest_weather.wind).toFixed(2) : '--';
+
+                    if (document.getElementById('curr-temp')) {
+                        document.getElementById('curr-temp').innerText = `${temp} °C`;
+                        document.getElementById('curr-rain').innerText = `${rain} mm`;
+                        document.getElementById('curr-humid').innerText = `${humid} %`;
+                        document.getElementById('curr-wind').innerText = `${wind} m/s`;
+                        document.getElementById('chart-title').innerText = `📍 ${data.nearest_station} (${data.distance_km} km) - နောက်ဆုံး ၇ ရက်`;
+                        renderChart(data.weather_data);
+                    }
+                });
+        }
+
+        function renderChart(weatherData) {
+            const labels = weatherData.map(item => item.date.slice(-2) + '/' + item.date.slice(4, 6));
+            const rainData = weatherData.map(item => item.rainfall);
+            const tempData = weatherData.map(item => item.temp);
+
+            if (weatherChartInstance) weatherChartInstance.destroy();
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            weatherChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'မိုးရေချိန် (mm)', data: rainData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true, tension: 0.4, yAxisID: 'y' },
+                        { label: 'အပူချိန် (°C)', data: tempData, borderColor: '#ef4444', borderDash: [5, 5], tension: 0.4, yAxisID: 'y1' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'bottom', labels: { font: { family: 'Padauk' } } } },
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', beginAtZero: true, title: { display: true, text: 'မိုးရေချိန် (mm)' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'အပူချိန် (°C)' } }
+                    }
+                }
+            });
+        }
+
+        function loadCityWeather() {
+            fetch('/api/weather/city/kengtung')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) return console.error(data.error);
+                    let cityTemp = data.current_temp ? parseFloat(data.current_temp).toFixed(2) : '--';
+                    let cityRain = data.current_rain ? parseFloat(data.current_rain).toFixed(2) : '--';
+
+                    if (document.getElementById('city-temp')) {
+                        document.getElementById('city-temp').innerText = `${cityTemp} °C`;
+                        document.getElementById('city-rain').innerText = `${cityRain} mm`;
+                        document.getElementById('city-station').innerText = data.nearest_station;
+
+                        const labels = data.weather_data.map(item => item.date.slice(-2) + '/' + item.date.slice(4, 6));
+                        const rainData = data.weather_data.map(item => item.rainfall);
+                        const tempData = data.weather_data.map(item => item.temp);
+
+                        if (cityChartInstance) cityChartInstance.destroy();
+                        const ctx = document.getElementById('cityChart').getContext('2d');
+                        cityChartInstance = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [
+                                    { type: 'line', label: 'အပူချိန် (°C)', data: tempData, borderColor: '#ef4444', tension: 0.4, yAxisID: 'y1' },
+                                    { type: 'bar', label: 'မိုးရေချိန် (mm)', data: rainData, backgroundColor: 'rgba(59, 130, 246, 0.7)', yAxisID: 'y' }
+                                ]
+                            },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                plugins: { legend: { position: 'bottom', labels: { font: { family: 'Padauk' } } } },
+                                scales: {
+                                    y: { beginAtZero: true, position: 'left', title: { display: true, text: 'မိုးရေချိန် (mm)' } },
+                                    y1: { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'အပူချိန် (°C)' } }
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.log("City Weather Error:", err));
+        }
+
+        function loadForecast() {
+            fetch('/api/forecast/city')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('forecastList');
+                    if (data.error) {
+                        if (container) container.innerHTML = `<div class="text-center text-red-500 py-4 col-span-3">ခန့်မှန်းချက် ရယူ၍ မရပါ: ${data.error}</div>`;
+                        return;
+                    }
+                    if (!container) return;
+                    container.innerHTML = "";
+
+                    data.forecast.forEach(day => {
+                        let d = new Date(day.date);
+                        let dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                        let icon = "☀️";
+                        if (day.weather_condition === "Rain") icon = "🌧️";
+                        else if (day.weather_condition === "Clouds") icon = "☁️";
+
+                        container.innerHTML += `
+                            <div class="bg-white/80 border border-gray-200 rounded-xl p-4 flex flex-col items-center text-center shadow-sm hover:shadow-md transition">
+                                <div class="font-bold text-gray-800 mb-2">${dateStr}</div>
+                                <div class="text-5xl mb-3">${icon}</div>
+                                <div class="font-semibold text-brand-600 mb-2">${day.condition_mm}</div>
+                                <div class="text-sm text-gray-700"><b>အပူချိန်:</b> ${Math.round(day.temp_min)}°C - ${Math.round(day.temp_max)}°C</div>
+                                <div class="text-sm text-gray-700"><b>မိုးရေ:</b> ${parseFloat(day.rain).toFixed(2)} mm</div>
+                                <div class="text-xs text-gray-500 mt-2 bg-gray-200 px-2 py-1 rounded-full">💧 ${day.humidity}% | 💨 ${day.wind} m/s</div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(err => {
+                    const container = document.getElementById('forecastList');
+                    if (container) container.innerHTML = `<div class="text-center text-red-500 py-4 col-span-3">ခန့်မှန်းချက် ရယူ၍ မရပါ</div>`;
+                });
+        }
+    </script>
+</body>
+
+</html>

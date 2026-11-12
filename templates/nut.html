@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မြေပဲ စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ မြေပဲခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1595054055726-7e1b4e7b3f4f?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #d97706;
+            /* မြေပဲအရောင် (Amber/Brown) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">မြေပဲ စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider (ပုံ ၆ ပုံ) -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/peanut1.jpg') }}" alt="Peanut Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/peanut2.jpg') }}" alt="Peanut Seeds"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Seeds'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/peanut3.jpg') }}" alt="Peanut Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/peanut4.jpg') }}" alt="Peanut Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/peanut5.jpg') }}" alt="Peanut Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Harvest'">
+                </div>
+
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မျိုးရွေးချယ်ခြင်းနှင့်
+                        မြေအမျိုးအစား</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးရွေးချယ်ခြင်း:</strong> အထွက်ကောင်းမျိုးများဖြစ်သော ဆင်းပဒေသာ ၅၊ ၆၊ ၇၊ ၉၊ ၁၀၊
+                            မကွေး ၁၁၊ ၁၅ မျိုးများနှင့် ပင်ပြန့် ကျောင်းကုန်းမျိုးကို သုံးစွဲပါ။ အပင်ပေါက် ၈၀%
+                            အထက်ရှိသော မျိုးစေ့ကို စိုက်ပါ။ မစိုက်မီ ၁ ပတ်အလိုတွင် အစေ့ထုတ်၍ ကြီးလွန်းသော၊ သေးလွန်းသော
+                            မျိုးများကို ဖယ်ထုတ်ပစ်ပါ။ မျိုးစေ့ကို မစိုက်မီ ဝိစာရ မျိုးစေ့လူးနယ်ဆေးဖြင့်
+                            လူးနယ်စိုက်ပျိုးပါ။</li>
+                        <li><strong>မြေအမျိုးအစား:</strong> နုံးမြေနှင့် သဲနုံးမြေတို့သည် မြေပဲစိုက်ရန် အသင့်တော်ဆုံး
+                            မြေအမျိုးအစားများဖြစ်သည်။ ရေထုတ်ရန်လွယ်ကူပြီး ရေစိမ့်စီးဆင်းမှုကောင်းမွန်သော မြေဖြစ်သင့်သည်။
+                            မြေချဉ်ငန်ကိန်း (၅-၅.၅) ရှိသောမြေတွင် ပိုမိုစိုက်ပျိုးဖြစ်ထွန်းနိုင်ပါသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - မြေပြုပြင်ခြင်းနှင့်
+                        စိုက်ပျိုးချိန်</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေပြုပြင်ခြင်း:</strong> စိုက်ခင်းကို ထယ်ရေးနက်နက်နှင့် ထွန်ရေးညက်အောင်
+                            မြေပြုပြင်ပါ။ မိုးရာသီလယ်မြေများတွင် ဘောင်စနစ်ဖြင့် စိုက်ပျိုးသင့်ပါသည်။</li>
+                        <li><strong>စိုက်ပျိုးချိန်:</strong> မိုးမြေပဲကို ဇွန်လအတွင်း စိုက်ပျိုးနိုင်ပြီး
+                            ဆောင်းမြေပဲကို စက်တင်ဘာလမှ နိုဝင်ဘာလအတွင်းနှင့် စကမြေပဲကို သြဂုတ်လ (၁၅) ရက်အတွင်း
+                            စိုက်ပျိုးပေးရပါမည်။</li>
+                        <li><strong>စိုက်နည်းစနစ်:</strong> ပင်ထောင်မြေပဲအတွက် တန်းကြား ၁၅ လက်မ × ပင်‌ကြား ၄ လက်မ နှင့်
+                            ပင်ပြန့်မြေပဲအတွက် တန်းကြား ၁၈ လက်မ × ပင်‌ကြား ၄ လက်မ ထား၍ စိုက်ပျိုးရပါမည်။
+                            ပင်ထောင်မြေပဲကို ပင်စည်မမှထွက်သည့် ကိုင်း (၄) ကိုင်း အနည်းဆုံး ရရှိစေရန်နှင့် တစ်ဧက အပင်ဦးရေ
+                            (၁) သိန်း ဝင်အောင် စိုက်ပျိုးနိုင်ပါက အထွက်နှုန်းတိုးမည်ဖြစ်ပါသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - သဘာဝမြေသြဇာနှင့်
+                        ဓာတ်မြေသြဇာ အသုံးပြုခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>သဘာဝမြေသြဇာ:</strong> မြေပြင်ချိန်တွင် နွားချေးလှည်း (၅-၁၀) စီး ချပေးပါ။</li>
+                        <li><strong>ဓာတ်မြေသြဇာ:</strong> မြေခံအဖြစ် တစ်ဧကလျှင် အာသီသမြေခံကွန်ပေါင်းမြေဩဇာ (၂၅-၅၀)
+                            ကီလိုနှင့် မော်နီတာဂျစ်ပ်ဆမ် (၂၅) ကီလို နှစ်အိတ်နှုန်း ထည့်သွင်းပေးပါ။ မြေပဲသီးနှံသည်
+                            ကယ်လ်စီယမ်ဓာတ် အထူးလိုအပ်သော သီးနှံဖြစ်ပါသည်။ စိုက်ပြီး (၂၅-၃၀) ရက်သားခန့်တွင်
+                            မော်နီတာဂျစ်ပ်ဆမ် (၂၅) ကီလိုနှုန်း ထည့်သွင်းပေးသင့်ပါသည်။ သို့မှသာ အစေ့အဆံပြည့်ဝပြီး
+                            အထွက်ရော အရည်အသွေးပါ ကောင်းမွန်ပါမည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - ပေါင်းသတ်ဆေးနှင့်
+                        ပိုးမွှားရောဂါ ကာကွယ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပေါင်းသတ်ဆေးအသုံးပြုခြင်း:</strong> မြေပဲသီးနှံအတွက် “ယာရှင်း” ပေါင်းအုပ်ဆေးဖြင့်
+                            ပေါင်းအမျိုးမျိုး ပေါက်မလာစေရန် ကာကွယ်တားဆီးပေးနိုင်ပါသည်။ မြေပဲခင်းအတွင်းရှိ ပေါင်းများကို
+                            ရှင်းရှင်း ၁၀ အက်စ်အယ်လ်၊ ပီဇာ ၁၀ အီးစီ ပေါင်းသတ်ဆေးများကို အသုံးပြု၍ နှိမ်နှင်းနိုင်ပါသည်။
+                        </li>
+                        <li><strong>ပိုးမွှားရောဂါ ကာကွယ်ခြင်း:</strong> မြေပဲသီးနှံတွင် ပျ၊ ဖြုတ်၊ ယင်ဖြူ၊
+                            သရစ်လှေးပိုးများ ကျရောက်တတ်ပြီး “ကေလာ၊ အေမီဒါ” ဆေးများကို အသုံးပြုနိုင်ပါသည်။ မြေပဲရွက်လိပ်
+                            ရွက်ကပ်ပိုးအတွက် “ရယ်ဒီ၊ မင်းရဲ၊ သူရိယ” ဆေးများမှ တစ်မျိုးမျိုးကို ရွေးချယ်သုံးစွဲပေးပြီး
+                            ငမြှောင်တောင်ပိုးကျရောက်ပါက “အီမာလန်ဒါ၊ ရယ်ဒီ၊ နိုက်ဝမ်း” ဆေးများမှ ရွေးချယ်သုံးစွဲရပါမည်။
+                            မြေပဲရောဂါများအတွက် ခါးရိရောဂါကာကွယ်နိုင်ရန် “ထီး၊ ဘာလီဆိုဒ်” ဆေးများဖြင့်
+                            ကြိုတင်ကာကွယ်နိုင်ပြီး မြေပဲရွက်ပြောက်နှင့် သံချေးရောဂါများကို “ကာဗာ၊ ဇိုလာ၊ ဒိုင်ဇီ၊
+                            ဟက်ဇာဂွန်” ဆေးများမှ ရွေးချယ်သုံးစွဲပေးရပါမည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - ရိတ်သိမ်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>မြေပဲညှိုး၍ အရွက်များ ဝါလာချိန်၊ အတောင့်၏ ၇၀% ရင့်မှည့်ချိန်တွင် ရိတ်သိမ်းပါ။</li>
+                        <li>ရိတ်သိမ်းချိန်တွင် အစိုဓာတ်ရှိ၍ ၃-၄ ရက်ခန့် နေလှန်းပြီး အခြောက်ခံပေးရပါမည်။ ထို့နောက်
+                            လေလုံပုံးများတွင် စနစ်တကျ သိုလှောင်ထိန်းသိမ်းထားသင့်ပါသည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Peanut
+                    Cultivation</h1>
+
+
+                <!-- Horizontal Image Slider -->
+                <div class="image-slider mb-10" id="slider-en">
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/peanut1.jpg') }}" alt="Peanut Field"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Field'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/peanut2.jpg') }}" alt="Peanut Seeds"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Seeds'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/peanut3.jpg') }}" alt="Peanut Planting"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Planting'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/peanut4.jpg') }}" alt="Peanut Growing"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Growing'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/peanut5.jpg') }}" alt="Peanut Harvest"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Harvest'">
+                    </div>
+
+                </div>
+
+                <div class="space-y-8 steps-container">
+                    <!-- Step 1 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Seed Selection & Soil Type
+                        </h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>Seed Selection:</strong> Use high-yielding varieties like Sin Padetha 5, 6, 7,
+                                9,
+                                10, Magway 11, 15, and spreading types like Kyaung Kone. Ensure a germination rate above
+                                80%. Shell seeds a week before planting, discarding overly large or small ones. Treat
+                                seeds
+                                with Vitavax before planting.</li>
+                            <li><strong>Soil Type:</strong> Loamy and sandy loam soils are best for peanuts. Soil should
+                                be
+                                well-drained with good permeability. pH of 5-5.5 is most favorable.</li>
+                        </ul>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Land Prep & Planting Time
+                        </h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>Land Prep:</strong> Plow deeply and harrow finely. In monsoon lowlands, use
+                                raised
+                                bed systems.</li>
+                            <li><strong>Planting Time:</strong> Monsoon peanuts in June; Winter peanuts from September
+                                to
+                                November; Pre-monsoon peanuts by August 15.</li>
+                            <li><strong>Spacing:</strong> Bunch type: 15 inches x 4 inches. Spreading type: 18 inches x
+                                4
+                                inches. Aim for 100,000 plants/acre for bunch types to ensure at least 4 primary
+                                branches,
+                                increasing yield.</li>
+                        </ul>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Organic & Chemical
+                            Fertilizer
+                        </h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>Organic:</strong> Apply 5-10 cartloads of cow manure during land prep.</li>
+                            <li><strong>Chemical:</strong> Basal application per acre: 25-50 kg of NPK compound and 2
+                                bags
+                                (25 kg each) of gypsum. Peanuts require high calcium. Apply 25 kg of gypsum at 25-30
+                                days
+                                after planting for full kernels and good quality.</li>
+                        </ul>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Weed & Pest Control</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>Weed Control:</strong> Use "Yashin" pre-emergence herbicide. For existing weeds,
+                                use
+                                herbicides like Ranger 10 SL or Pisa 10 EC.</li>
+                            <li><strong>Pest Control:</strong> For aphids, thrips, whiteflies, use "Kela" or "Amida".
+                                For
+                                leaf rollers, use "Reddy", "Min Yay", or "Thuriya". For armyworms, use "Emamectina",
+                                "Reddy", or "Nova". For stem rot, prevent with "Thi" or "Bavistin". For leaf spot and
+                                rust,
+                                use "Cover", "Zolar", "Dize", or "Hexagon".</li>
+                        </ul>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Harvesting</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li>Harvest when plants wither, leaves turn yellow, and 70% of pods mature.</li>
+                            <li>Dry for 3-4 days under the sun immediately after harvest. Store properly in airtight
+                                containers.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ################################################## -->
+            <!-- ၃။ ထိုင်းဘာသာ -->
+            <!-- ################################################## -->
+            <div id="content-th" class="lang-content">
+                <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกถั่วลิสง</h1>
+
+                </div>
+
+                <!-- Horizontal Image Slider -->
+                <div class="image-slider mb-10" id="slider-th">
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut1.jpg') }}" alt="Peanut Field"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Field'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut2.jpg') }}" alt="Peanut Seeds"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Seeds'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut3.jpg') }}" alt="Peanut Planting"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Planting'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut4.jpg') }}" alt="Peanut Growing"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Growing'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut5.jpg') }}" alt="Peanut Harvest"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Harvest'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut6.jpg') }}" alt="Peanut Processing"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Processing'">
+                    </div>
+                </div>
+
+                <div class="space-y-8 steps-container">
+                    <!-- Step 1 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1:
+                            การเลือกเมล็ดพันธุ์และประเภทดิน</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>การเลือกเมล็ดพันธุ์:</strong> ใช้พันธุ์ที่ให้ผลผลิตสูง เช่น Sin Padetha 5, 6, 7,
+                                9,
+                                10, Magway 11, 15 และพันธุ์เลื้อย เช่น Kyaung Kone
+                                ตรวจสอบให้แน่ใจว่ามีอัตราการงอกมากกว่า
+                                80%</li>
+                            <li><strong>ประเภทดิน:</strong> ดินร่วนและดินร่วนปนทรายเหมาะที่สุดสำหรับถั่วลิสง
+                                ดินควรระบายน้ำได้ดีและมีความสามารถในการซึมผ่านที่ดี pH 5-5.5 เหมาะสมที่สุด</li>
+                        </ul>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2:
+                            การเตรียมดินและเวลาปลูก
+                        </h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>การเตรียมดิน:</strong> ไถลึกและคราดให้ละเอียด ในพื้นที่ลุ่มมรสุมให้ใช้ระบบยกแปลง
+                            </li>
+                            <li><strong>เวลาปลูก:</strong> ถั่วลิสงฤดูฝนในเดือนมิถุนายน;
+                                ฤดูหนาวตั้งแต่เดือนกันยายนถึงพฤศจิกายน; ฤดูก่อนมรสุมภายในวันที่ 15 สิงหาคม</li>
+                            <li><strong>ระยะปลูก:</strong> ชนิดกอตั้ง: 15 นิ้ว x 4 นิ้ว ชนิดเลื้อย: 18 นิ้ว x 4 นิ้ว
+                                เป้าหมาย 100,000 ต้น/เอเคอร์</li>
+                        </ul>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3:
+                            ปุ๋ยอินทรีย์และปุ๋ยเคมี
+                        </h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>อินทรีย์:</strong> ใส่ปุ๋ยคอก 5-10 คันรถในช่วงเตรียมดิน</li>
+                            <li><strong>เคมี:</strong> ใส่ปุ๋ยรองพื้นต่อเอเคอร์: NPK 25-50 กก. และยิปซัม 2 กระสอบ
+                                (กระสอบละ
+                                25 กก.) ถั่วลิสงต้องการแคลเซียมสูง ใส่ยิปซัม 25 กก. ที่ 25-30 วันหลังปลูก</li>
+                        </ul>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4:
+                            การควบคุมวัชพืชและศัตรูพืช</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>วัชพืช:</strong> ใช้สารกำจัดวัชพืชก่อนงอก "Yashin" สำหรับวัชพืชที่มีอยู่ให้ใช้
+                                Ranger 10 SL หรือ Pisa 10 EC</li>
+                            <li><strong>ศัตรูพืช:</strong> สำหรับเพลี้ยอ่อน ใช้ "Kela" หรือ "Amida" สำหรับหนอนม้วนใบ ใช้
+                                "Reddy", "Min Yay" หรือ "Thuriya" สำหรับหนอนกระทู้ ใช้ "Emamectina" หรือ "Nova"
+                                สำหรับโรคโคนเน่า ป้องกันด้วย "Thi" หรือ "Bavistin" สำหรับโรคใบจุดและสนิม ใช้ "Cover"
+                                หรือ
+                                "Hexagon"</li>
+                        </ul>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การเก็บเกี่ยว</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li>เก็บเกี่ยวเมื่อต้นเหี่ยว ใบเปลี่ยนเป็นสีเหลือง และฝักสุก 70%</li>
+                            <li>ตากแดด 3-4 วันทันทีหลังเก็บเกี่ยว เก็บรักษาในภาชนะสุญญากาศ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ################################################## -->
+            <!-- ၄။ တရုတ်ဘာသာ -->
+            <!-- ################################################## -->
+            <div id="content-cn" class="lang-content">
+                <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">花生种植综合指南</h1>
+
+                </div>
+
+                <!-- Horizontal Image Slider -->
+                <div class="image-slider mb-10" id="slider-cn">
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut1.jpg') }}" alt="Peanut Field"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Field'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut2.jpg') }}" alt="Peanut Seeds"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Seeds'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut3.jpg') }}" alt="Peanut Planting"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Planting'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut4.jpg') }}" alt="Peanut Growing"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Growing'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut5.jpg') }}" alt="Peanut Harvest"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Harvest'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/nut6.jpg') }}" alt="Peanut Processing"
+                            onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Peanut+Processing'">
+                    </div>
+                </div>
+
+                <div class="space-y-8 steps-container">
+                    <!-- Step 1 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：选种与土壤类型</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>选种：</strong>使用高产品种，如 Sin Padetha 5、6、7、9、10、Magway 11、15 以及匍匐型 Kyaung
+                                Kone。确保发芽率超过80%。</li>
+                            <li><strong>土壤：</strong>壤土和沙壤土最适合花生。土壤应排水良好、透水性好。pH值5-5.5最为适宜。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：整地与播种时间</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>整地：</strong>深耕细耙。在季风低地，采用高畦系统。</li>
+                            <li><strong>时间：</strong>雨季花生在6月；冬花生在9月至11月；季风前花生在8月15日前。</li>
+                            <li><strong>密度：</strong>丛生型：15英寸 x 4英寸。匍匐型：18英寸 x 4英寸。丛生型目标为每英亩100,000株。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：有机与化学肥料</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>有机肥：</strong>整地时施用5-10车牛粪。</li>
+                            <li><strong>化肥：</strong>基肥每亩：25-50公斤NPK复合肥和2袋（每袋25公斤）石膏。花生需钙量高。种植后25-30天施用25公斤石膏，以促进籽粒饱满。
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：杂草与病虫害控制</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>杂草：</strong>使用“Yashin”芽前除草剂。对于现有杂草，使用Ranger 10 SL或Pisa 10 EC。</li>
+                            <li><strong>病虫害：</strong>蚜虫、蓟马、粉虱使用“Kela”或“Amida”。卷叶虫使用“Reddy”。夜蛾使用“Emamectina”。茎腐病使用“Thi”或“Bavistin”预防。叶斑病和锈病使用“Cover”或“Hexagon”。
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：收获</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li>当植株枯萎、叶片变黄、70%的荚果成熟时收获。</li>
+                            <li>收获后立即在阳光下晒3-4天。储存在密闭容器中。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/peanut')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>နွေစပါး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ စပါးခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.8)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #10b981;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 🔄 မိုးစပါး / နွေစပါး ပြောင်းရန် ခလုတ်များ -->
+        <div class="flex justify-center gap-4 mb-8">
+            <a href="/guide/monsoon_rice"
+                class="px-8 py-3 rounded-xl font-bold text-lg shadow-md transition hover:-translate-y-1 glass-card text-gray-600 hover:bg-gray-50">
+                🌧️ မိုးစပါး
+            </a>
+            <a href="/guide/summer_rice"
+                class="px-8 py-3 rounded-xl font-bold text-lg shadow-md transition hover:-translate-y-1 bg-brand-600 text-white">
+                ☀️ နွေစပါး
+            </a>
+        </div>
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">နွေစပါး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice1.jpg') }}"
+                        alt="Summer Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Summer+Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice2.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice3.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Transplanting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice4.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Water+Management'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvesting'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - စိုက်ပျိုးချိန်နှင့်
+                        ရာသီဥတု</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးချိန်:</strong> ဒီဇင်ဘာလမှ ဇန်နဝါရီလအတွင်း မျိုးစေ့ချ/ပျိုးထောင်ပါ။
+                            ဇန်နဝါရီမှ ဖေဖော်ဝါရီလတွင် စိုက်ပျိုးပါ။ ဧပြီမှ မေလတွင် ရိတ်သိမ်းနိုင်ပါသည်။</li>
+                        <li><strong>ရာသီဥတု:</strong> နွေစပါးသည် ပူနွေးသော ရာသီဥတုကို နှစ်သက်သည်။ ပန်းပွင့်ချိန်တွင်
+                            အပူချိန်အလွန်မြင့်မားပါက အစေ့အောင်မြင်မှု လျော့နည်းနိုင်ပါသည်။</li>
+                        <li><strong>ရေစီမံခန့်ခွဲမှု:</strong> ဆည်ရေ၊ မြစ်ရေ၊ မြေအောက်ရေများကို အသုံးပြု၍
+                            တစ်သျှူးတစ်လျှောက်လုံး ရေလုံလောက်စွာ ရရှိရန် လိုအပ်ပါသည်။ အထူးသဖြင့် ပန်းပွင့်ချိန်တွင်
+                            ရေမပြတ်စေရန် အထူးဂရုစိုက်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - မျိုးစေ့ရွေးချယ်ခြင်းနှင့်
+                        ပျိုးထောင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးရွေးချယ်ခြင်း:</strong> ဒေသရာသီဥတုနှင့် ကိုက်ညီပြီး ပိုးမွှားဒဏ်ခံနိုင်သော၊
+                            အထွက်နှုန်းကောင်းသော မျိုးကို ရွေးပါ။</li>
+                        <li><strong>မျိုးစေ့ပြုပြင်ခြင်း:</strong> မျိုးစေ့များကို ရေ ၂၄ နာရီခန့် စိမ်ပြီး၊ ၂၄-၄၈
+                            နာရီကြာ အညှောက်ဖောက်ပါ။</li>
+                        <li><strong>ပျိုးထောင်ခြင်း:</strong> ပျိုးခင်းမြေကို ညက်အောင်ထွန်ပြီး မျိုးစေ့များကို
+                            ညီညာစွာကြဲပါ။ ပျိုးသက် ၁၅-၂၅ ရက်အတွင်း စိုက်ခင်းသို့ ရွှေ့ပြောင်းစိုက်ပျိုးနိုင်ပါသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - စိုက်ခင်းမြေ ပြင်ဆင်ခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေပြင်ဆင်ခြင်း:</strong> လယ်ကွင်းထဲက ကျန်ရှိနေသော ကောက်ရိုးများ၊ ပေါင်းမြက်များကို
+                            ရှင်းလင်းပါ။ လယ်ကို ထွန်ယက်ပြီး မြေတောင်မြှောက်ပါ။</li>
+                        <li><strong>မြေညှိခြင်း:</strong> ရေဝင်ရောက်မှု ညီညာစေရန် မြေပြင်ကို ညီညာအောင် ပြုလုပ်ပါ။
+                            မညီညာပါက ရေအလွန်အကျွံစုပုံနေနိုင်ပါသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - စိုက်ပျိုးခြင်းနှင့်
+                        ရေစီမံခန့်ခွဲမှု</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးခြင်း:</strong> ပျိုးပင်များကို အမြစ်မပျက်စီးစေဘဲ ဂရုတစိုက်
+                            ရွှေ့ပြောင်းပါ။ အကွာအဝေး ၂၀ ဆင်တီမီတာခန့် ထားပါ။</li>
+                        <li><strong>ရေစီမံခန့်ခွဲမှု:</strong> စိုက်ပြီးချိန်တွင် ရေအနည်းငယ်ထားပါ။ ပင်ပွားချိန်နှင့်
+                            ပန်းပွင့်ချိန်တွင် ရေမပြတ်စေရန် ဂရုစိုက်ပါ။ ရိတ်သိမ်းရန် ၁၀-၁၄ ရက်အလိုတွင် ရေလုံးဝ
+                            စစ်ထုတ်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - မြေဩဇာကျွေးမွေးခြင်းနှင့်
+                        ရိတ်သိမ်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေဩဇာ:</strong> နိုက်ထရိုဂျင် (N) သည် အရွက်စိမ်းခြင်းနှင့် ပင်ပွားထွက်ခြင်းကို
+                            အားပေးသည်။ ဖော့စဖရပ်စ် (P) သည် အမြစ်ဖွံ့ဖြိုးမှုကို ကူညီသည်။ ပိုတက်စီယမ် (K) သည်
+                            ရေထိန်းညှိမှုနှင့် ရောဂါခံနိုင်ရည်ကို တိုးတက်စေသည်။</li>
+                        <li><strong>ပိုးမွှားရောဂါ:</strong> ပေါင်းမြက်များ၊ စပါးရွက်လိပ်ပိုး၊ ဂုတ်ကျိုးရောဂါနှင့်
+                            အရွက်စက်ရောဂါများကို ပုံမှန်စစ်ဆေးပါ။</li>
+                        <li><strong>ရိတ်သိမ်းခြင်း:</strong> စပါးနှံများ ရွှေဝါရောင်ပြောင်းပြီး အစေ့များ
+                            မာကျောလာချိန်တွင် ရိတ်သိမ်းပါ။ စိုက်ပြီး ရက် ၁၀၀-၁၃၀ ကြာနိုင်ပါသည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Complete Guide to Summer Rice
+                    Cultivation</h1>
+
+            </div>
+
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice1.jpg') }}"
+                        alt="Summer Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Summer+Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice2.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice3.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Transplanting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice4.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Water+Management'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Timing and Climate</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Timing:</strong> Seed sowing and nursery preparation occur from December to January.
+                            Transplanting takes place from January to February. Harvesting is expected around April to
+                            May.</li>
+                        <li><strong>Climate:</strong> Summer rice requires warm conditions. Excessively high
+                            temperatures during flowering can reduce grain formation.</li>
+                        <li><strong>Water:</strong> A reliable supply from dams, rivers, or wells is crucial. Avoid
+                            water shortages during panicle development and flowering.</li>
+                    </ul>
+                </div>
+
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Seed Selection and Nursery
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Selection:</strong> Choose varieties suitable for your region, considering
+                            resistance to local pests and market demand.</li>
+                        <li><strong>Preparation:</strong> Soak seeds for 24 hours and incubate to encourage germination.
+                        </li>
+                        <li><strong>Nursery:</strong> Prepare a level nursery bed with fine soil. Transplant seedlings
+                            at 15-25 days old.</li>
+                    </ul>
+                </div>
+
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Field Preparation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Clearing:</strong> Remove old straw, weeds, and debris. Plow the field and break up
+                            large soil clods.</li>
+                        <li><strong>Leveling:</strong> Level the field to distribute water evenly. Uneven fields cause
+                            water accumulation and shortages.</li>
+                    </ul>
+                </div>
+
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Transplanting and Water
+                        Management</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Transplanting:</strong> Remove seedlings carefully to avoid root damage. Maintain
+                            consistent spacing (e.g., 20x20 cm).</li>
+                        <li><strong>Water Management:</strong> Maintain appropriate water levels early on. Take special
+                            care to prevent shortages during panicle initiation and flowering. Gradually reduce
+                            irrigation before harvesting.</li>
+                    </ul>
+                </div>
+
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Fertilizer and Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Fertilizer:</strong> Nitrogen (N) promotes green leaves and tillering. Phosphorus
+                            (P) helps root development. Potassium (K) improves water regulation and disease resistance.
+                        </li>
+                        <li><strong>Pests:</strong> Monitor weeds, rice leaf folders, stem borers, and blast disease
+                            regularly.</li>
+                        <li><strong>Harvesting:</strong> Harvest when panicles turn golden yellow and grains harden. It
+                            takes about 100-130 days after planting.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกข้าวนาปรัง</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice1.jpg') }}"
+                        alt="Summer Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Summer+Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice2.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice3.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Transplanting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice4.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Water+Management'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: เวลาปลูกและสภาพอากาศ
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>เวลาปลูก:</strong>
+                            การหว่านเมล็ดและการเตรียมแปลงเพาะกล้าเกิดขึ้นระหว่างเดือนธันวาคมถึงมกราคม
+                            การย้ายกล้าเกิดขึ้นระหว่างเดือนมกราคมถึงกุมภาพันธ์
+                            คาดว่าจะเก็บเกี่ยวได้ประมาณเดือนเมษายนถึงพฤษภาคม</li>
+                        <li><strong>สภาพอากาศ:</strong> ข้าวนาปรังต้องการสภาพอากาศที่อบอุ่น
+                            อุณหภูมิที่สูงเกินไปในช่วงออกดอกอาจลดการสร้างเมล็ด</li>
+                        <li><strong>น้ำ:</strong> การจัดหาน้ำจากเขื่อน แม่น้ำ หรือบ่อน้ำอย่างเชื่อถือได้เป็นสิ่งสำคัญ
+                            หลีกเลี่ยงการขาดแคลนน้ำในช่วงการพัฒนารวงและการออกดอก</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2:
+                        การเลือกเมล็ดพันธุ์และแปลงเพาะกล้า
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือก:</strong> เลือกพันธุ์ที่เหมาะกับภูมิภาคของคุณ
+                            โดยคำนึงถึงความต้านทานต่อศัตรูพืชในท้องถิ่นและความต้องการของตลาด</li>
+                        <li><strong>การเตรียม:</strong> แช่เมล็ดเป็นเวลา 24 ชั่วโมงและบ่มเพื่อส่งเสริมการงอก</li>
+                        <li><strong>แปลงเพาะกล้า:</strong> เตรียมแปลงเพาะกล้าระดับด้วยดินละเอียด ย้ายกล้าอายุ 15-25 วัน
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การเตรียมแปลงนา</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเคลียร์:</strong> กำจัดฟางเก่า วัชพืช และเศษซาก ไถนาและย่อยก้อนดินขนาดใหญ่</li>
+                        <li><strong>การปรับระดับ:</strong> ปรับระดับนาเพื่อกระจายน้ำอย่างสม่ำเสมอ
+                            นาที่ไม่เรียบจะทำให้น้ำสะสมและขาดแคลน</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4:
+                        การย้ายกล้าและการจัดการน้ำ
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การย้ายกล้า:</strong> ถอนต้นกล้าอย่างระมัดระวังเพื่อหลีกเลี่ยงความเสียหายของราก
+                            รักษาระยะห่างให้สม่ำเสมอ (เช่น 20x20 ซม.)</li>
+                        <li><strong>การจัดการน้ำ:</strong> รักษาระดับน้ำที่เหมาะสมตั้งแต่เริ่มต้น
+                            ดูแลเป็นพิเศษเพื่อป้องกันการขาดแคลนในระหว่างการสร้างรวงและการออกดอก
+                            ค่อยๆ ลดการชลประทานก่อนการเก็บเกี่ยว</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5:
+                        การใส่ปุ๋ยและการเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ปุ๋ย:</strong> ไนโตรเจน (N) ส่งเสริมการเจริญเติบโตของใบและการแตกกอ
+                            ฟอสฟอรัส (P) ช่วยในการพัฒนาราก โพแทสเซียม (K) ช่วยควบคุมน้ำและเพิ่มความต้านทานโรค</li>
+                        <li><strong>ศัตรูพืช:</strong> ติดตามวัชพืช หนอนม้วนใบ เพลี้ยกระโดดสีน้ำตาล และโรคไหม้เป็นประจำ
+                        </li>
+                        <li><strong>การเก็บเกี่ยว:</strong> เก็บเกี่ยวเมื่อรวงเปลี่ยนเป็นสีเหลืองทองและเมล็ดแข็ง
+                            ใช้เวลาประมาณ 100-130 วันหลังการปลูก</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">旱季水稻种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice1.jpg') }}"
+                        alt="Summer Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Summer+Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice2.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice3.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Transplanting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice4.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Water+Management'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/summer_rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：时间与气候</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>时间：</strong>播种和苗床准备在12月至1月进行。移栽在1月至2月进行。预计在4月至5月收获。</li>
+                        <li><strong>气候：</strong>旱季水稻需要温暖的条件。开花期温度过高会减少籽粒形成。</li>
+                        <li><strong>水：</strong>可靠的水库、河流或井水供应至关重要。避免在穗发育和开花期间缺水。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：选种与苗床</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>选择：</strong>选择适合您所在地区的品种，考虑对当地病虫害的抗性和市场需求。</li>
+                        <li><strong>准备：</strong>将种子浸泡24小时并催芽以促进发芽。</li>
+                        <li><strong>苗床：</strong>用细土准备平整的苗床。在15-25天龄时移栽幼苗。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：大田准备</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>清理：</strong>清除旧稻草、杂草和杂物。耕田并打碎大土块。</li>
+                        <li><strong>平整：</strong>平整田地以均匀分布水分。不平整的田地会导致积水和缺水。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：移栽与水分管理</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>移栽：</strong>小心取出幼苗以避免根部损伤。保持一致的间距（例如20x20厘米）。</li>
+                        <li><strong>水分管理：</strong>早期保持适当的水位。特别注意防止在穗 initiation 和开花期间缺水。收获前逐渐减少灌溉。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：施肥与收获</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>施肥：</strong>氮（N）促进绿叶生长和分蘖。磷（P）有助于根系发育。钾（K）改善水分调节和抗病性。</li>
+                        <li><strong>病虫害：</strong>定期监测杂草、稻纵卷叶螟、二化螟和稻瘟病。</li>
+                        <li><strong>收获：</strong>当穗变金黄且籽粒变硬时收获。种植后约需100-130天。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/summer_rice')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

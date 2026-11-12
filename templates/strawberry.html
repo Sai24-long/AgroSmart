@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>စတော်ဘယ်ရီ စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ စတော်ဘယ်ရီခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1464965911861-746a04b4bca6?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #ef4444;
+            /* စတော်ဘယ်ရီအရောင် (Red) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">စတော်ဘယ်ရီ စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider (ပုံ ၆ ပုံ) -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry1.jpg') }}" alt="Strawberry Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Strawberry+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry2.jpg') }}"
+                        alt="Strawberry Raised Beds"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Raised+Beds'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry3.jpg') }}"
+                        alt="Strawberry Seedling"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Seedling'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry4.jpg') }}"
+                        alt="Strawberry Flowering"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Flowering'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry5.jpg') }}"
+                        alt="Strawberry Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry6.jpg') }}" alt="Strawberry Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Fruits'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - ရာသီဥတုနှင့် မြေအမျိုးအစား
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရာသီဥတု:</strong> အေးမြပြီး နေရောင်လုံလောက်စွာရသော နေရာကို ရွေးချယ်ပါ။
+                            မြန်မာနိုင်ငံ၏ အေးမြသောဒေသများတွင် အောက်တိုဘာနှင့် နိုဝင်ဘာလများသည် စိုက်ပျိုးရန်
+                            သင့်တော်နိုင်သည်။ အပူချိန်မြင့်လွန်ပါက အပင်ကြီးထွားမှုနှင့် အသီးအရည်အသွေးကို
+                            ထိခိုက်စေနိုင်သည်။</li>
+                        <li><strong>မြေအမျိုးအစား:</strong> မြေဆွေးပင်ပြီး ပွသော၊ ရေစီးရေလေကောင်းသော သဲနုံးမြေသည်
+                            သင့်တော်သည်။ မြေ၏ pH ၅.၅ မှ ၆.၅ အတွင်း ရှိရပါမည်။ အမြစ်ပတ်လည်တွင် ရေဝပ်နေသောနေရာများကို
+                            ရှောင်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - မျိုးရွေးချယ်ခြင်းနှင့်
+                        မြေပြင်ဆင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးရွေးချယ်ခြင်း:</strong> စတော်ဘယ်ရီကို မျိုးတက် (Runners) သို့မဟုတ်
+                            အစေ့မှတစ်ဆင့် မျိုးပွားနိုင်သည်။ စတင်စိုက်ပျိုးသူများအတွက် ကျန်းမာသော မျိုးတက်ပင် သို့မဟုတ်
+                            ယုံကြည်စိတ်ချရသော ပျိုးခင်းမှ ရရှိသည့် ရောဂါကင်းသော ပျိုးပင်များကို အသုံးပြုခြင်းက
+                            ပိုမိုလွယ်ကူသည်။</li>
+                        <li><strong>မြေပြင်ဆင်ခြင်း:</strong> စိုက်မည့်နေရာရှိ ပေါင်းမြက်၊ ကျောက်ခဲနှင့် အမှိုက်များကို
+                            ဖယ်ရှားပါ။ မြေကို ပွအောင် ထွန်ယက်ပြီး ဆွေးမြည့်သော မြေဆွေး သို့မဟုတ် သဘာဝမြေဩဇာနှင့်
+                            ရောစပ်ပါ။ ရေစီးရေလေကောင်းစေရန် လိုအပ်ပါက မြေဘောင်မြင့်ပြုလုပ်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - စိုက်ပျိုးခြင်းနှင့်
+                        ရေလောင်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးခြင်း:</strong> မိမိဒေသ၏ ရာသီဥတုနှင့် ကိုက်ညီသော အေးမြသည့်လတွင် စိုက်ပါ။
+                            အမြစ်များကို သဘာဝအတိုင်း ပြန့်ထွက်နိုင်ရန် သင့်တော်သော စိုက်ကျင်းတူးပါ။ အမြစ်များကို
+                            မြေဖုံးပေးသော်လည်း အရွက်နှင့်အမြစ် ဆုံသည့်အလယ်ပိုင်း (Crown) ကို မြေမျက်နှာပြင်အဆင့်တွင်
+                            ထားပါ။ အလွန်နက်အောင် မမြုပ်ပါနှင့်။ စိုက်ပြီးချင်း ညင်သာစွာ ရေလောင်းပါ။</li>
+                        <li><strong>ရေလောင်းခြင်း:</strong> မြေကို အမြဲတမ်း စိုစွတ်နေစေရမည်၊ သို့သော် ရေမဝပ်စေရပါ။
+                            အပင်ငယ်စဉ်တွင် အမြစ်များအနီးသို့ ရေပိုက်ဖြင့် ရေပေးသွင်းခြင်းက အရွက်နှင့် အသီးများကို
+                            ခြောက်သွေ့စေနိုင်သည်။ အလွန်အကျွံ ရေလောင်းခြင်းက အမြစ်ပုပ်ခြင်းကို ဖြစ်စေနိုင်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - မြေသြဇာကျွေးခြင်းနှင့်
+                        ပေါင်းမြက်/ပိုးမွှား ကာကွယ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေသြဇာကျွေးခြင်း:</strong> စတော်ဘယ်ရီပင်သည် နိုက်ထရိုဂျင် (N)၊ ဖော့စဖရပ် (P) နှင့်
+                            ပိုတက်စီယမ် (K) တို့ လိုအပ်သည်။ ကြက်ချေး - တစ်ဧကလျှင် ၅ တန်၊ ယူရီးယား - တစ်ဧကလျှင် ၂၂၄
+                            ပေါင်၊ တီအက်စ်ပီ (TSP) - တစ်ဧကလျှင် ၁၁၂ ပေါင်၊ ပိုတက်ရှ် - တစ်ဧကလျှင် ၂၂၄ ပေါင်
+                            အသုံးပြုနိုင်သည်။ ဆွေးမြည့်ပြီးသော မြေဩဇာကိုသာ အသုံးပြုပါ။</li>
+                        <li><strong>ပေါင်းမြက်/ပိုးမွှား ကာကွယ်ခြင်း:</strong> ရေနှင့် အာဟာရအတွက်
+                            ယှဉ်ပြိုင်မှုမဖြစ်စေရန် ပေါင်းမြက်များကို ပုံမှန်ရှင်းပါ။ ရောဂါကျနေသော အရွက်များနှင့်
+                            ပုပ်နေသော အသီးများကို ဖယ်ရှားပါ။ အပင်များ ထူထပ်လွန်းခြင်းကို ရှောင်ပြီး
+                            လေဝင်လေထွက်ကောင်းစေပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - ပန်းပွင့်ခြင်းနှင့်
+                        အသီးဆွတ်ခူးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ပန်းပွင့်ချိန်နှင့် အသီးရိတ်သိမ်းချိန်သည် မျိုးအမျိုးအစား၊ အပူချိန်နှင့် အပင်ကျန်းမာရေးအပေါ်
+                            မူတည်၍ ကွာခြားနိုင်သည်။ အသီးသည် မိမိမျိုးအလိုက် သတ်မှတ်ထားသော အနီရောင်သို့ ပြောင်းလဲပြီး
+                            မှည့်ချိန်တွင် ဆွတ်ခူးပါ။ အသီးမည်းစေရန် ညင်သာစွာ ကိုင်တွယ်ပါ။ ချိုးပြီးသော အသီးများကို
+                            နေရောင်တိုက်ရိုက်မထိသော အေးမြသည့်နေရာတွင် ထားပြီး သင့်တော်စွာ သိမ်းဆည်းပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) - စိုက်ပျိုးချိန်ဇယား
+                        (Calendar)</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စက်တင်ဘာ-အောက်တိုဘာ:</strong> မြေပြင်ဆင်ခြင်းနှင့် ပျိုးပင်ရွေးချယ်ခြင်း။</li>
+                        <li><strong>အောက်တိုဘာ-နိုဝင်ဘာ:</strong> ဒေသရာသီဥတုနှင့် ကိုက်ညီပါက စိုက်ပျိုးခြင်း။</li>
+                        <li><strong>စိုက်ပြီးနောက်:</strong> ရေလောင်းခြင်းနှင့် အပင်ရှင်သန်မှု စစ်ဆေးခြင်း။</li>
+                        <li><strong>အပင်ကြီးထွားချိန်:</strong> ပေါင်းရှင်းခြင်း၊ မြေစိုထိုင်းဆ စစ်ဆေးခြင်းနှင့်
+                            လိုအပ်သလို မြေဩဇာထည့်ခြင်း။</li>
+                        <li><strong>ပန်းပွင့်ချိန်:</strong> ရေနှင့် ပိုးမွှားအခြေအနေများကို စောင့်ကြည့်ခြင်း။</li>
+                        <li><strong>အသီးမှည့်ချိန်:</strong> အသီးခူးဆွတ်ပြီး သင့်တော်စွာ သိမ်းဆည်းခြင်း။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Strawberry
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry1.jpg') }}" alt="Strawberry Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Strawberry+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry2.jpg') }}"
+                        alt="Strawberry Raised Beds"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Raised+Beds'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry3.jpg') }}"
+                        alt="Strawberry Seedling"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Seedling'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry4.jpg') }}"
+                        alt="Strawberry Flowering"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Flowering'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry5.jpg') }}"
+                        alt="Strawberry Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry6.jpg') }}" alt="Strawberry Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Fruits'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Climate and Soil</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Climate:</strong> Choose a cool, sunny location with good air circulation. In cooler
+                            areas of Myanmar, October and November may be suitable. High temperatures reduce growth and
+                            quality.</li>
+                        <li><strong>Soil:</strong> Fertile, loose, well-drained sandy loam. pH 5.5-6.5 is ideal. Avoid
+                            areas where water collects around roots.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Plant Selection and Soil Prep
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Selection:</strong> Propagate by runners or seeds. Beginners should use healthy
+                            runner plants or disease-free seedlings from reliable nurseries.</li>
+                        <li><strong>Soil Prep:</strong> Remove weeds and debris. Loosen soil and mix in well-rotted
+                            compost. Make raised beds if necessary for drainage.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Planting and Watering</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Planting:</strong> Plant in cool weather (Oct-Nov). Dig a hole to spread roots.
+                            Cover roots but keep the crown at soil level (do not bury deeply). Water gently.</li>
+                        <li><strong>Watering:</strong> Keep soil moist but not waterlogged. Drip irrigation is good to
+                            keep leaves dry. Avoid overwatering to prevent root rot.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Fertilizer and Pest Control
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Fertilizer:</strong> Needs N, P, K. Provisional rates: Chicken manure 5 tons/acre,
+                            Urea 224 lbs/acre, TSP 112 lbs/acre, Potash 224 lbs/acre. Use only well-composted manure.
+                        </li>
+                        <li><strong>Pest Control:</strong> Remove weeds, diseased leaves, and rotting fruit. Avoid
+                            overcrowding for air circulation. Water near soil, not on leaves. Use approved pesticides
+                            only if necessary.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Flowering and Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Time varies by variety and temperature. Pick when fully red and ripe. Handle gently to avoid
+                            bruising. Keep cool and out of direct sunlight.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Growing Calendar</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Sep-Oct:</strong> Prepare soil, select seedlings.</li>
+                        <li><strong>Oct-Nov:</strong> Plant when weather is suitable.</li>
+                        <li><strong>After Planting:</strong> Water and check establishment.</li>
+                        <li><strong>Growth:</strong> Weed, monitor moisture, apply fertilizer.</li>
+                        <li><strong>Flowering:</strong> Monitor water and pests.</li>
+                        <li><strong>Maturity:</strong> Harvest ripe fruit and store carefully.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกสตรอว์เบอร์รี</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry1.jpg') }}" alt="Strawberry Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Strawberry+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry2.jpg') }}"
+                        alt="Strawberry Raised Beds"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Raised+Beds'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry3.jpg') }}"
+                        alt="Strawberry Seedling"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Seedling'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry4.jpg') }}"
+                        alt="Strawberry Flowering"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Flowering'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry5.jpg') }}"
+                        alt="Strawberry Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/strawberry6.jpg') }}" alt="Strawberry Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Fruits'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: สภาพอากาศและดิน</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>สภาพอากาศ:</strong> เลือกทำเลที่เย็น แดดจัด และมีการระบายอากาศดี
+                            ในพื้นที่เย็นของเมียนมาร์ เดือนตุลาคมและพฤศจิกายนอาจเหมาะสม
+                            อุณหภูมิสูงจะลดการเติบโตและคุณภาพ</li>
+                        <li><strong>ดิน:</strong> ดินร่วนปนทรายที่อุดมสมบูรณ์ หลวม และระบายน้ำได้ดี pH 5.5-6.5
+                            เหมาะสมที่สุด หลีกเลี่ยงพื้นที่ที่มีน้ำขังรอบราก</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2:
+                        การเลือกต้นกล้าและการเตรียมดิน</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือก:</strong> ขยายพันธุ์ด้วยไหลหรือเมล็ด
+                            ผู้เริ่มต้นควรใช้ต้นไหลที่แข็งแรงหรือต้นกล้าที่ปลอดโรคจากแหล่งเพาะกล้าที่เชื่อถือได้</li>
+                        <li><strong>การเตรียมดิน:</strong> กำจัดวัชพืชและเศษซาก คลายดินและผสมปุ๋ยหมักที่ย่อยสลายดีแล้ว
+                            ทำแปลงยกสูงหากจำเป็นเพื่อการระบายน้ำ</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การปลูกและการให้น้ำ</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การปลูก:</strong> ปลูกในสภาพอากาศเย็น (ต.ค.-พ.ย.) ขุดหลุมให้รากแผ่กระจาย
+                            กลบรากแต่ให้ยอด (Crown) อยู่ระดับผิวดิน (ห้ามฝังลึก) รดน้ำเบาๆ</li>
+                        <li><strong>การให้น้ำ:</strong> รักษาความชื้นแต่ต้องไม่ท่วมขัง การให้น้ำแบบหยดช่วยให้ใบแห้ง
+                            หลีกเลี่ยงการให้น้ำมากเกินไปเพื่อป้องกันรากเน่า</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: ปุ๋ยและการควบคุมศัตรูพืช
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ปุ๋ย:</strong> ต้องการ N, P, K อัตราเบื้องต้น: มูลไก่ 5 ตัน/เอเคอร์, ยูเรีย 224
+                            ปอนด์/เอเคอร์, TSP 112 ปอนด์/เอเคอร์, โพแทช 224 ปอนด์/เอเคอร์
+                            ใช้ปุ๋ยหมักที่ย่อยสลายดีเท่านั้น</li>
+                        <li><strong>ศัตรูพืช:</strong> กำจัดวัชพืช ใบที่เป็นโรค และผลที่เน่า
+                            หลีกเลี่ยงความแออัดเพื่อการระบายอากาศ ให้น้ำใกล้ดิน ไม่ใช่บนใบ
+                            ใช้สารฆ่าแมลงที่ได้รับอนุมัติเมื่อจำเป็นเท่านั้น</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5:
+                        การออกดอกและการเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>เวลาขึ้นอยู่กับสายพันธุ์และอุณหภูมิ เก็บเกี่ยวเมื่อสุกแดงเต็มที่
+                            จับอย่างเบามือเพื่อหลีกเลี่ยงการช้ำ เก็บในที่เย็นและหลีกเลี่ยงแสงแดดโดยตรง</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6: ปฏิทินการปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ก.ย.-ต.ค.:</strong> เตรียมดิน เลือกต้นกล้า</li>
+                        <li><strong>ต.ค.-พ.ย.:</strong> ปลูกเมื่อสภาพอากาศเหมาะสม</li>
+                        <li><strong>หลังปลูก:</strong> รดน้ำและตรวจสอบการตั้งตัว</li>
+                        <li><strong>การเติบโต:</strong> กำจัดวัชพืช ตรวจความชื้น ใส่ปุ๋ย</li>
+                        <li><strong>ออกดอก:</strong> ติดตามน้ำและศัตรูพืช</li>
+                        <li><strong>สุก:</strong> เก็บเกี่ยวผลสุกและเก็บรักษาอย่างระมัดระวัง</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">草莓种植综合指南</h1>
+
+
+                <!-- Horizontal Image Slider -->
+                <div class="image-slider mb-10" id="slider-cn">
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry1.jpg') }}"
+                            alt="Strawberry Field"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Strawberry+Field'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry2.jpg') }}"
+                            alt="Strawberry Raised Beds"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Raised+Beds'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry3.jpg') }}"
+                            alt="Strawberry Seedling"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Seedling'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry4.jpg') }}"
+                            alt="Strawberry Flowering"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Flowering'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry5.jpg') }}"
+                            alt="Strawberry Harvest"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Harvest'">
+                    </div>
+                    <div class="slider-item">
+                        <img src="{{ url_for('static', filename='images/shared/strawberry6.jpg') }}"
+                            alt="Strawberry Fruits"
+                            onerror="this.src='https://via.placeholder.com/1200x600/ef4444/ffffff?text=Fruits'">
+                    </div>
+                </div>
+
+                <div class="space-y-8 steps-container">
+                    <!-- Step 1 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：气候与土壤</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>气候：</strong>选择凉爽、阳光充足且通风良好的地方。在缅甸较冷的地区，10月和11月可能适合种植。高温会降低生长和品质。</li>
+                            <li><strong>土壤：</strong>肥沃、疏松、排水良好的沙壤土。pH值5.5-6.5最理想。避免根部周围积水的区域。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：选苗与整地</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>选苗：</strong>通过匍匐茎或种子繁殖。初学者应使用健康的匍匐茎植物或来自可靠苗圃的无病幼苗。</li>
+                            <li><strong>整地：</strong>清除杂草和杂物。松土并混入腐熟的堆肥。必要时做高畦以利排水。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：种植与浇水</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>种植：</strong>在凉爽天气（10-11月）种植。挖穴使根系自然伸展。覆土但保持冠部与地面齐平（不要深埋）。轻轻浇水。</li>
+                            <li><strong>浇水：</strong>保持土壤湿润但不积水。滴灌可以保持叶片干燥。避免过度浇水以防根腐。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 4 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：施肥与病虫害控制</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>施肥：</strong>需要N、P、K。暂定用量：鸡粪5吨/英亩，尿素224磅/英亩，TSP 112磅/英亩，钾肥224磅/英亩。仅使用充分腐熟的粪肥。
+                            </li>
+                            <li><strong>病虫害：</strong>清除杂草、病叶和烂果。避免过度拥挤以利通风。在土壤附近浇水，不要浇在叶子上。仅在必要时使用批准的农药。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 5 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：开花与收获</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li>时间因品种和温度而异。当果实完全变红成熟时采摘。轻拿轻放以免碰伤。保持凉爽并避免阳光直射。</li>
+                        </ul>
+                    </div>
+                    <!-- Step 6 -->
+                    <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：种植日历</h2>
+                        <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                            <li><strong>9-10月：</strong>整地、选苗。</li>
+                            <li><strong>10-11月：</strong>天气适宜时种植。</li>
+                            <li><strong>种植后：</strong>浇水并检查成活率。</li>
+                            <li><strong>生长期：</strong>除草、监测水分、施肥。</li>
+                            <li><strong>开花期：</strong>监测水分和病虫害。</li>
+                            <li><strong>成熟期：</strong>采收成熟果实并小心储存。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/strawberry')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

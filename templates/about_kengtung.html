@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ကျိုင်းတုံဒေသအကြောင်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+            background-color: #f0fdf4;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            /* Google Translate Bar ကို ဖျောက်ရန် */
+            top: 0 !important;
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(rgba(20, 83, 45, 0.7), rgba(20, 83, 45, 0.7)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        .text-shadow {
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        #myanmar-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+
+        /* Google Translate Bar ကို ဖျောက်ထားမယ် */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .skiptranslate {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="pb-10">
+
+    <!-- Navbar -->
+    <nav
+        class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-gray-900 tracking-tight"><i class="fa-solid fa-leaf text-green-400"></i>
+                AgroSmart <span class="text-green-600">KyaingTong</span></span>
+        </div>
+
+        <div class="flex items-center gap-5 text-sm font-semibold text-gray-600">
+            <a href="/" class="hover:text-green-600 transition">ပင်မ</a>
+            <a href="/prices" class="hover:text-green-600 transition">💰 စျေးနှုန်းများ</a>
+            <a href="/chatbot_similarity" class="hover:text-green-600 transition">ဆွေးနွေးခန်း</a>
+
+            <!-- Menu Dropdown -->
+            <div class="relative">
+                <button onclick="toggleGuideMenu()"
+                    class="hover:text-green-600 transition flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <i class="fa-solid fa-bars"></i> Menu
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="guideMenu"
+                    class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 text-sm font-normal z-50">
+                    <a href="/weather" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">🌤️
+                        မိုးလေဝသ</a>
+                    <a href="/news" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">📰
+                        စိုက်ပျိုးရေးသတင်းများ</a>
+                    <a href="/crop_guide_params"
+                        class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">🌱 မြေဆီလွှာ</a>
+                    <a href="/about_kengtung"
+                        class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold text-green-700">ℹ️
+                        ကျိုင်းတုံအကြောင်း</a>
+                    <a href="/guide" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">❓
+                        အသုံးပြုနည်း</a>
+
+                    <div class="border-t border-gray-100 my-2"></div>
+
+                    <!-- ဘာသာစကား ပြောင်းရန် -->
+                    <div class="px-4 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">ဘာသာစကား</div>
+                    <a href="#" onclick="doGTranslate('my|en'); return false;"
+                        class="block px-4 py-2 text-blue-600 font-bold hover:bg-blue-50">🌐 English</a>
+                    <a href="#" onclick="doGTranslate('my|my'); return false;"
+                        class="block px-4 py-2 text-gray-700 hover:bg-green-50">🇲🇲 မြန်မာ</a>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="/admin"
+                class="hover:text-red-600 transition flex items-center gap-1 text-red-600 font-bold ml-2">👑 Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-bg h-[60vh] flex items-center justify-center relative">
+        <div class="text-center text-white px-4 z-10 mt-10">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 text-shadow tracking-wide">
+                ကျိုင်းတုံမြို့အကြောင်းတစေ့တစောင်း </h1>
+            <p class="text-lg md:text-2xl text-gray-100 max-w-2xl mx-auto leading-relaxed text-shadow font-semibold">
+                ရှမ်းပြည်နယ်အရှေ့ပိုင်း၏ စိမ်းလန်းစိုပြေသော တောင်တန်းများနှင့် စိုက်ပျိုးရေးအရင်းအမြစ်များ
+                ပေါများရာ ဒေသ
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 -mt-16 relative z-20 space-y-10 mb-10">
+
+        <!-- Section 1: အထွေထွေ အချက်အလက် -->
+        <div class="glass-card rounded-3xl p-8 md:p-10">
+            <h2
+                class="text-3xl font-bold text-emerald-800 mb-6 flex items-center gap-3 border-b-2 border-emerald-100 pb-4">
+                <i class="fa-solid fa-mountain-sun"></i> ကျိုင်းတုံအကြောင်း တစေ့တစောင်း
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-4 text-gray-700 text-lg leading-loose text-justify">
+                    <p>
+                        ကျိုင်းတုံမြို့သည် ရှမ်းပြည်နယ်အရှေ့ပိုင်းတွင် တည်ရှိပြီး သဘာဝအလှအပနှင့် ယဉ်ကျေးမှု
+                        ထုံးတမ်းစဉ်လာများ ကြွယ်ဝသော ဒေသဖြစ်သည်။ "ကျိုင်းတုံ" ဟူသော အမည်သည် ရှမ်းဘာသာစကားဖြင့်
+                        "အောင်ပွဲခံတဲ့ တံတိုင်း" သို့မဟုတ် "အောင်မြင်မှုရရှိသော နေရာ" ဟု အဓိပ္ပာယ်ရသည်ဟု ဆိုကြသည်။
+                    </p>
+                    <p>
+                        ကျိုင်းတုံမြို့သည် မြန်မာနိုင်ငံ၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်းတွင် တည်ရှိသော
+                        အကြီးဆုံးမြို့တစ်မြို့ဖြစ်သည်။ ရှမ်းပြည်နယ်(အရှေ့ပိုင်း)၏ မြို့တော်ဖြစ်ပြီး ကျိုင်းတုံခရိုင်
+                        နှင့် ကျိုင်းတုံမြို့နယ်၏ ရုံးအခြေစိုက်ရာမြို့လည်းဖြစ်သည်။
+                        ရှမ်းပြည်နယ် (အရှေ့ပိုင်း) ဒေသတစ်ခုလုံးတွင် ခရိုင်(၄)ခုနှင့် မြို့နယ် (၁၀) မြို့နယ်ရှိပါသည်။
+                    </p>
+                    <p>
+                        ကျိုင်းတုံမြို့သည် စတုရန်းမိုင်ပေါင်း ၁၃,၂၀၀ ခန့် ကျယ်ဝန်းပြီး တောတောင်
+                        ထူပေါများသောမြို့ဖြစ်သည်။ တောင်တန်းများလည်း အမြင့်ပေ ၅,၀၀၀ မှ ၇,၀၀၀ အထိ မြင့်ကြသည်။
+                        မြေပြန့်ဒေသများတွင် လယ်စပါးကို စိုက်ပျိုးကြပြီး တောင်တန်းဒေသများတွင် ယာစပါးနှင့်
+                        ကုန်းမြင့်သီးနှံများကို စိုက်ပျိုးကြသည်။
+                        သင့်တင့်မျှတသော ရာသီဥတုလည်းရှိသည်။ ထို့ကြောင့်
+                        စိုက်ပျိုးရေးအတွက် အလွန်သင့်တော်သော ဒေသတစ်ခုလည်းဖြစ်သည်။
+                    </p>
+                </div>
+
+                <!-- မြန်မာနိုင်ငံမြေပုံ -->
+                <div
+                    class="relative bg-white rounded-2xl p-2 shadow-sm border border-gray-200 flex flex-col justify-center">
+                    <div id="myanmar-map" class="border border-gray-100 rounded-xl"></div>
+                    <p class="text-center text-sm font-bold text-emerald-700 mt-3">
+                        <i class="fa-solid fa-location-dot text-red-500"></i> မြန်မာနိုင်ငံအတွင်းရှိ
+                        ရှမ်းပြည်နယ်အရှေ့ပိုင်း ကျိုင်းတုံမြို့၏ တည်နေရာ
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: ရာသီဥတုနှင့် မြေဆီလွှာ -->
+        <div class="glass-card rounded-3xl p-8 md:p-10">
+            <h2 class="text-3xl font-bold text-amber-700 mb-6 flex items-center gap-3 border-b-2 border-amber-100 pb-4">
+                <i class="fa-solid fa-cloud-sun-rain"></i> ရာသီဥတုနှင့် မြေဆီလွှာ
+            </h2>
+            <div class="text-gray-700 text-lg leading-loose text-justify space-y-4">
+                <p>
+                    ကျိုင်းတုံမြို့သည် အပူပိုင်းနှင့် အအေးပိုင်း ကြားရှိ သင့်တင့်မျှတသော ရာသီဥတု (Temperate Climate)
+                    ရှိသည်။ နွေရာသီတွင် ပူအိုက်ပြီး မိုးရာသီတွင် မိုးများသည်းထန်စွာ ရွာသွန်းလေ့ရှိသည်။ ဆောင်းရာသီတွင်မူ
+                    ရန်ကုန်
+                    သို့မဟုတ် မန္တလေးထက် ပိုမို အေးမြသည်။
+                </p>
+                <p>
+                    မြေအမျိုးအစားအနေဖြင့် <strong>နီညိုရောင်မြေ (Red Brown Forest Soils)</strong> နှင့်
+                    <strong>ဝါညိုရောင်မြေ (Yellow Brown Forest Soils)</strong> တို့သည် အဓိက တွေ့ရတတ်ပြီး လက်ဖက်၊
+                    ကော်ဖီနှင့် သစ်သီးဝလံပင်များ စိုက်ပျိုးရန် အထူးသင့်တော်သည်။ ချိုင့်ဝှမ်းဒေသများတွင်မူ
+                    <strong>အနည်ထိုင်မြေ (Alluvial Soils)</strong> များ တွေ့ရပြီး စပါးစိုက်ပျိုးရန် အကောင်းဆုံးဖြစ်သည်။
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 3: အဓိက စိုက်ပျိုးသော သီးနှံများ -->
+        <div class="glass-card rounded-3xl p-8 md:p-10">
+            <h2
+                class="text-3xl font-bold text-emerald-800 mb-8 flex items-center gap-3 border-b-2 border-emerald-100 pb-4">
+                <i class="fa-solid fa-seedling"></i> ကျိုင်းတုံ၏ ဂုဏ်ဆောင် သီးနှံများ
+            </h2>
+
+            <div class="space-y-12">
+
+                <!-- စပါး -->
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="w-full md:w-1/3 rounded-2xl overflow-hidden shadow-md group">
+                        <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop"
+                            alt="Rice" class="w-full h-48 object-cover group-hover:scale-110 transition duration-500">
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🌾 စပါး (Rice)</h3>
+                        <p class="text-gray-600 text-justify leading-relaxed">
+                            ကျိုင်းတုံဒေသခံတို့၏ အဓိက အစားအစာဖြစ်သည့် စပါးကို ချိုင့်ဝှမ်းဒေသများတွင် အဓိက
+                            စိုက်ပျိုးသည်။ မိုးစပါးနှင့် နွေစပါး ဟူ၍ နှစ်မျိုးရှိပြီး ဒေသထွက် စပါးမျိုးကွဲများမှာ
+                            အရသာကောင်းမွန်ခြင်းကြောင့် နာမည်ကြီးသည်။
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- လက်ဖက် -->
+                <div class="flex flex-col md:flex-row-reverse gap-6 items-center">
+                    <div class="w-full md:w-1/3 rounded-2xl overflow-hidden shadow-md group">
+                        <img src="https://images.unsplash.com/photo-1594631252845-29fc4cc8cde9?q=80&w=600&auto=format&fit=crop"
+                            alt="Tea" class="w-full h-48 object-cover group-hover:scale-110 transition duration-500">
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">🍵 လက်ဖက် (Tea)</h3>
+                        <p class="text-gray-600 text-justify leading-relaxed">
+                            "ကျိုင်းတုံလက်ဖက်" သည် မြန်မာနိုင်ငံတွင် အရည်အသွေးအမြင့်မားဆုံးနှင့် အကျော်ကြားဆုံး
+                            လက်ဖက်များထဲတွင် အပါအဝင်ဖြစ်သည်။ တောင်ကုန်းမြင့်ဒေသများတွင် စိုက်ပျိုးပြီး
+                            လက်ဖက်စိမ်းအဖြစ်ရော၊ လက်ဖက်ခြောက်အဖြစ်ပါ ပြည်တွင်းပြည်ပ ဈေးကွက်သို့ တင်ပို့ရောင်းချနေသည်။
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- ကော်ဖီ -->
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    <div class="w-full md:w-1/3 rounded-2xl overflow-hidden shadow-md group">
+                        <img src="https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=600&auto=format&fit=crop"
+                            alt="Coffee" class="w-full h-48 object-cover group-hover:scale-110 transition duration-500">
+                    </div>
+                    <div class="w-full md:w-2/3">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">☕ ကော်ဖီ (Coffee)</h3>
+                        <p class="text-gray-600 text-justify leading-relaxed">
+                            နိုင်ငံတကာ အဆင့်မီ ကော်ဖီမျိုးကွဲများဖြစ်သော Arabica နှင့် Robusta ကို ကျိုင်းတုံဒေသ၏
+                            အေးမြသော တောင်ကုန်းဒေသများတွင် စိုက်ပျိုးသည်။ မြန်မာ့ကော်ဖီလုပ်ငန်း ဖွံ့ဖြိုးတိုးတက်ရေးအတွက်
+                            အဓိက အရင်းအမြစ်ဒေသတစ်ခု ဖြစ်သည်။
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom Button -->
+        <div class="text-center pt-6 pb-12">
+            <a href="/"
+                class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-10 rounded-2xl shadow-lg transition transform hover:-translate-y-1">
+                <i class="fa-solid fa-house"></i> ပင်မစာမျက်နှာသို့ ပြန်သွားရန်
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-300 py-10 mt-auto shrink-0">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-green-600 p-2 rounded-lg text-white">🌾</div>
+                    <h2 class="text-2xl font-bold text-white">AgroSmart <span class="text-green-500">KyaingTong</span>
+                    </h2>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    ကျိုင်းတုံဒေသရှိ တောင်သူများအတွက် ခေတ်မီနည်းပညာနှင့် ရာသီဥတုအချက်အလက်များကို အခြေခံပြီး
+                    စိုက်ပျိုးရေးဆိုင်ရာ အကြံပြုချက်များနှင့် ဈေးကွက်အချက်အလက်များကို ပံ့ပိုးပေးနေသော စနစ်ဖြစ်ပါသည်။
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">အမြန်လင့်ခ်များ</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ပင်မစာမျက်နှာ</a></li>
+                    <li><a href="/about_kengtung" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ကျိုင်းတုံအကြောင်း</a></li>
+                    <li><a href="/prices" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> သီးနှံစျေးနှုန်းများ</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">ဆက်သွယ်ရန်</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-green-500"></i>
+                        <span>ကျိုင်းတုံမြို့၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်း၊ မြန်မာနိုင်ငံ</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-green-500"></i>
+                        <span>+95 9 123 456 789</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-green-500"></i>
+                        <span>info@agrosmart.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2026 AgroSmart KyaingTong. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- 🌐 Google Translate Script (ဖျောက်ထားသော) -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'my',
+                includedLanguages: 'en,my',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+
+            setTimeout(() => {
+                const banner = document.querySelector('.goog-te-banner-frame');
+                if (banner) banner.style.display = 'none';
+                document.body.style.top = '0px';
+            }, 1000);
+        }
+
+        function doGTranslate(lang_pair) {
+            if (lang_pair == 'my|en') {
+                // အင်္ဂလိပ်လို ပြောင်းမယ်
+                document.cookie = "googtrans=/my/en; path=/";
+                location.reload();
+            } else if (lang_pair == 'my|my') {
+                // မြန်မာလို ပြန်ပြောင်းမယ် (Cookie ကို ရှင်းမယ်)
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                location.reload();
+            }
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Map Logic -->
+    <script>
+        // Navbar Menu Toggle
+        function toggleGuideMenu() {
+            document.getElementById('guideMenu').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#guideMenu') && !e.target.closest('button[onclick="toggleGuideMenu()"]')) {
+                document.getElementById('guideMenu').classList.add('hidden');
+            }
+        });
+
+        // Map
+        document.addEventListener("DOMContentLoaded", function () {
+            var map = L.map('myanmar-map', {
+                zoomControl: false
+            }).setView([21.9162, 95.9560], 5);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            var kengtungCoords = [21.29, 99.60];
+
+            var marker = L.marker(kengtungCoords).addTo(map);
+            marker.bindPopup("<b class='text-lg'>ကျိုင်းတုံမြို့</b><br><span class='text-sm'>ရှမ်းပြည်နယ်အရှေ့ပိုင်း</span>").openPopup();
+
+            L.circle(kengtungCoords, {
+                color: 'red',
+                fillColor: '#f03',
+                fillOpacity: 0.2,
+                radius: 20000
+            }).addTo(map);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မိုးစပါး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ စပါးခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #10b981;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 🔄 မိုးစပါး / နွေစပါး ပြောင်းရန် ခလုတ်များ -->
+        <div class="flex justify-center gap-4 mb-8">
+            <a href="/guide/monsoon_rice"
+                class="px-8 py-3 rounded-xl font-bold text-lg shadow-md transition hover:-translate-y-1 bg-brand-600 text-white">
+                🌧️ မိုးစပါး
+            </a>
+            <a href="/guide/summer_rice"
+                class="px-8 py-3 rounded-xl font-bold text-lg shadow-md transition hover:-translate-y-1 glass-card text-gray-600 hover:bg-gray-50">
+                ☀️ နွေစပါး
+            </a>
+        </div>
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">မိုးစပါး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice2.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice3.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice6.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice6'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice7.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice8'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice8.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice8'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice9.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice9'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မျိုးစေ့
+                        ရွေးချယ်ခြင်းနှင့် ပြုပြင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးကောင်းမျိုးသန့် ရွေးချယ်ခြင်း:</strong> ဒေသရာသီဥတုနှင့် ကိုက်ညီပြီး
+                            ပိုးမွှားဒဏ်ခံနိုင်သော မျိုးကို ရွေးပါ။</li>
+                        <li><strong>မျိုးစေ့ သန့်စင်ခြင်း:</strong> ဆားရေဖျော်ရည်တွင် စိမ်၍ ဖျင်းစပါးများ ဖယ်ရှားပါ။ ၂၄
+                            နာရီ ရေစိမ်ပြီး ၂၄-၄၈ နာရီ အညှောက်ဖောက်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - ပျိုးထောင်ခြင်းနှင့်
+                        ပျိုးပင် ပြုစုခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေမွမ်းပျိုးထောင်နည်း:</strong> ပျိုးခင်းမြေကို ညက်အောင်ထွန်ပြီး သဘာဝမြေဩဇာထည့်ပါ။
+                            အကျယ် ၄ ပေ ပျိုးဘောင်ပြုလုပ်ပြီး အညှောက်ထွက်မျိုးစေ့များကို ညီညာစွာကြဲပါ။</li>
+                        <li><strong>ပျိုးသက်:</strong> ပျိုးသက် ၁၈ မှ ၂၅ ရက်အတွင်း စိုက်ပျိုးရန် အကောင်းဆုံးဖြစ်သည်။
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - စိုက်ခင်းမြေ ပြင်ဆင်ခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ထွန်ယက်ခြင်းနှင့် မြေညှိခြင်း:</strong> စိုက်ခင်းကို ရေလွှတ်၍ ထွန် ၁ ကြိမ်၊ ရှေ ၁
+                            ကြိမ် ပြုလုပ်ပါ။ မြေညှိသစ်သားတုံးဖြင့် စိုက်ခင်းမြေပြင်ကို ညီညာအောင် ပြုလုပ်ပါ။</li>
+                        <li><strong>အခြေခံ မြေဩဇာ:</strong> နောက်ဆုံးထွန်ယက်ချိန်တွင် သဘာဝမြေဩဇာများနှင့်အတူ ဖော့စဖိတ်
+                            (TSP) နှင့် ပိုတက်ရှ် (MOP) မြေဩဇာအချို့ကို ထည့်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - စိုက်ပျိုးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်တန်းနှင့် အကွာအဝေး:</strong> စိုက်တန်းမှန် အကွာအဝေး (ဥပမာ- ၈ လက်မ × ၆ လက်မ
+                            သို့မဟုတ် ၉ လက်မ × ၆ လက်မ) ဖြင့် စိုက်ပျိုးပါ။</li>
+                        <li><strong>တိုက်ရိုက်မျိုးစေ့ကြဲ စိုက်ပျိုးခြင်း:</strong> လုပ်အားရှားပါးသော ဒေသများတွင်
+                            တန်းကြဲ (Drum Seeder) ဖြင့် တိုက်ရိုက် စိုက်ပျိုးနိုင်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - မြေဩဇာ ကျွေးမွေးခြင်းနှင့်
+                        ရေစီမံခန့်ခွဲခြင်း</h2>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="w-full text-base text-left border">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 border">ကာလ</th>
+                                    <th class="px-4 py-3 border">ဓာတ်မြေဩဇာ</th>
+                                    <th class="px-4 py-3 border">အကျိုးကျေးဇူး</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3 border">၇ - ၁၄ ရက်</td>
+                                    <td class="px-4 py-3 border">ယူရီးယား</td>
+                                    <td class="px-4 py-3 border">ပင်ပွားထွက်အား ကောင်းစေရန်</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">၃၀ - ၄၀ ရက်</td>
+                                    <td class="px-4 py-3 border">ယူရီးယား + ပိုတက်ရှ်</td>
+                                    <td class="px-4 py-3 border">စပါးနှံ အောင်မြင်စေရန်</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">အနှံထွက်ချိန်</td>
+                                    <td class="px-4 py-3 border">ပိုတက်ရှ် (MOP)</td>
+                                    <td class="px-4 py-3 border">အလေးချိန်စီးစေရန်</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-gray-800 text-lg"><strong>ရေစီမံခန့်ခွဲခြင်း:</strong> ပထမ ၁ လတွင် ရေနက် ၂ လက်မခန့်
+                        ထိန်းထားပါ။ ရိတ်သိမ်းရန် ၁၀ ရက်အလိုတွင် ရေလုံးဝ စစ်ထုတ်ပါ။</p>
+                </div>
+                <!-- Step 6 & 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) နှင့် (၇) -
+                        ပိုးမွှားကာကွယ်ခြင်းနှင့် ရိတ်သိမ်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပိုးမွှားရောဂါ ကာကွယ်ခြင်း:</strong> ငါးဖြူစုတ်ပိုး၊ ဆက်ရက်ပိုးနှင့်
+                            စပါးဂုတ်ကျိုးရောဂါများကို ပုံမှန် စစ်ဆေးပါ။</li>
+                        <li><strong>ရိတ်သိမ်းချိန်:</strong> စပါးနှံ၏ ၈၀% မှ ၈၅% ရွှေဝါရောင် ပြောင်းချိန် (ပန်းပွင့်ပြီး
+                            ၃၀-၃၅ ရက်အကြာ) တွင် ရိတ်သိမ်းပါ။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Monsoon Rice
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice2.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice3.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice6.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice6'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice7.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice6'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice8.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice8'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice9.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice9'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Variety Selection and Seed
+                        Preparation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Selecting Varieties:</strong> Select high-yielding, pest-resistant, and
+                            climate-resilient varieties suited for the local ecosystem.</li>
+                        <li><strong>Seed Treatment & Soaking:</strong> Soak seeds in a 10% saltwater solution to float
+                            off empty grains. Soak clean seeds for 24 hours, then incubate for 24-48 hours until
+                            sprouted.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Seedbed Preparation and
+                        Nursery</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Wet Bed Nursery:</strong> Plow and harrow the wet seedbed finely, incorporating
+                            organic compost. Prepare raised beds approx. 4 feet wide. Broadcast the pre-germinated seeds
+                            evenly.</li>
+                        <li><strong>Nursery Duration:</strong> Transplant seedlings when they are 18-25 days old.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Main Field Preparation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Plowing and Leveling:</strong> Plow the field once and harrow 2-3 times. Level the
+                            field accurately for uniform water distribution.</li>
+                        <li><strong>Basal Fertilizer:</strong> Incorporate organic manure along with full doses of
+                            Phosphate (TSP) and a portion of Potash (MOP).</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Transplanting / Planting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Spacing and Density:</strong> Adopt line transplanting with a spacing of 8" × 6" or
+                            9" × 6". Plant 2-3 seedlings per hill.</li>
+                        <li><strong>Direct Seeding:</strong> In labor-scarce areas, direct wet-seeding using drum
+                            seeders can be utilized.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Nutrient and Water Management
+                    </h2>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="w-full text-base text-left border">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 border">Stage</th>
+                                    <th class="px-4 py-3 border">Fertilizer</th>
+                                    <th class="px-4 py-3 border">Benefit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3 border">7-14 Days</td>
+                                    <td class="px-4 py-3 border">Urea</td>
+                                    <td class="px-4 py-3 border">Promotes tillering</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">30-40 Days</td>
+                                    <td class="px-4 py-3 border">Urea + Potash</td>
+                                    <td class="px-4 py-3 border">Panicle development</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">Heading</td>
+                                    <td class="px-4 py-3 border">Potash (MOP)</td>
+                                    <td class="px-4 py-3 border">Grain filling</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-gray-800 text-lg"><strong>Water Management:</strong> Maintain 2 inches of water depth
+                        initially. Drain completely 10-14 days before harvest.</p>
+                </div>
+                <!-- Step 6 & 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6 & 7: Pest Control and
+                        Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pest Management:</strong> Monitor for stem borers and blast disease. Implement IPM
+                            techniques.</li>
+                        <li><strong>Harvesting:</strong> Harvest when 80-85% of grains turn golden yellow. Dry paddy to
+                            below 14% moisture content.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกข้าวนาปรัง</h1>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice2.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice3.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice6.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice6'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice7.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice7'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice8.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice8'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice9.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice9'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1:
+                        การเลือกพันธุ์และการเตรียมเมล็ดพันธุ์</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือกพันธุ์:</strong> เลือกพันธุ์ที่ให้ผลผลิตสูง ต้านทานศัตรูพืช
+                            และปรับตัวเข้ากับสภาพอากาศในท้องถิ่นได้ดี</li>
+                        <li><strong>การเตรียมเมล็ดพันธุ์:</strong> แช่เมล็ดในน้ำเกลือ 10% เพื่อคัดเมล็ดลีบออก
+                            แช่เมล็ดที่สะอาดเป็นเวลา 24 ชั่วโมง จากนั้นบ่มเป็นเวลา 24-48 ชั่วโมงจนงอก</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: การเตรียมแปลงเพาะกล้า
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเพาะกล้าในแปลงเปียก:</strong> ไถและคราดแปลงเพาะให้ละเอียด ผสมปุ๋ยหมักอินทรีย์
+                            เตรียมแปลงยกสูงกว้างประมาณ 4 ฟุต หว่านเมล็ดที่งอกแล้วให้ทั่วถึง</li>
+                        <li><strong>อายุกล้า:</strong> ย้ายกล้าเมื่ออายุ 18-25 วัน</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การเตรียมแปลงปลูกหลัก
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การไถและปรับระดับ:</strong> ไถแปลง 1 ครั้ง และคราด 2-3 ครั้ง
+                            ปรับระดับแปลงให้เรียบสม่ำเสมอเพื่อการกระจายน้ำที่ทั่วถึง</li>
+                        <li><strong>ปุ๋ยรองพื้น:</strong> ผสมปุ๋ยคอกอินทรีย์พร้อมปุ๋ยฟอสเฟต (TSP) เต็มอัตรา และโพแทช
+                            (MOP) บางส่วน</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การปักดำ/การปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ระยะปลูก:</strong> ใช้การปักดำเป็นแถวด้วยระยะ 8" × 6" หรือ 9" × 6" ปลูก 2-3
+                            ต้นต่อหลุม</li>
+                        <li><strong>การหว่านโดยตรง:</strong> ในพื้นที่ที่ขาดแคลนแรงงาน สามารถใช้เครื่องหว่านเมล็ดแบบ
+                            Drum Seeder ในการหว่านเปียกโดยตรงได้</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การจัดการธาตุอาหารและน้ำ
+                    </h2>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="w-full text-base text-left border">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 border">ระยะ</th>
+                                    <th class="px-4 py-3 border">ปุ๋ย</th>
+                                    <th class="px-4 py-3 border">ประโยชน์</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3 border">7-14 วัน</td>
+                                    <td class="px-4 py-3 border">ยูเรีย</td>
+                                    <td class="px-4 py-3 border">ส่งเสริมการแตกกอ</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">30-40 วัน</td>
+                                    <td class="px-4 py-3 border">ยูเรีย + โพแทช</td>
+                                    <td class="px-4 py-3 border">การพัฒนารวง</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">ระยะออกรวง</td>
+                                    <td class="px-4 py-3 border">โพแทช (MOP)</td>
+                                    <td class="px-4 py-3 border">การสะสมน้ำหนักเมล็ด</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-gray-800 text-lg"><strong>การจัดการน้ำ:</strong> เก็บระดับน้ำไว้ 2 นิ้วในช่วงแรก
+                        ระบายน้ำออกให้หมด 10-14 วันก่อนการเก็บเกี่ยว</p>
+                </div>
+                <!-- Step 6 & 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6 & 7:
+                        การป้องกันศัตรูพืชและการเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การจัดการศัตรูพืช:</strong> ตรวจสอบหนอนกอและโรคไหม้ ใช้เทคนิค IPM</li>
+                        <li><strong>การเก็บเกี่ยว:</strong> เก็บเกี่ยวเมื่อเมล็ด 80-85% เปลี่ยนเป็นสีเหลืองทอง
+                            ตากข้าวเปลือกให้ความชื้นต่ำกว่า 14%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">雨季水稻种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice2.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Rice+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice3.jpg') }}" alt="Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice5.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Harvest'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice6.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice6'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice7.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice7'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice8.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice8'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rice9.jpg') }}" alt="Rice Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=rice9'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：品种选择与种子处理</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>选择品种：</strong>选择适合当地生态系统的高产、抗虫、气候适应性强品种。</li>
+                        <li><strong>种子处理与浸种：</strong>用10%盐水浸泡种子以浮去空秕粒。将干净种子浸泡24小时，然后催芽24-48小时至发芽。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：苗床准备与育秧</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>湿润育秧：</strong>精细耕耙湿润苗床，混入有机堆肥。制作约4英尺宽的畦。均匀撒播催芽种子。</li>
+                        <li><strong>秧龄：</strong>秧苗18-25天时移栽。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：大田准备</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>耕翻与平整：</strong>耕田一次，耙田2-3次。精确平整田面，使水分均匀分布。</li>
+                        <li><strong>基肥：</strong>施入有机肥及全量磷肥（TSP）和部分钾肥（MOP）。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：移栽/种植</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>行株距：</strong>采用8"×6"或9"×6"行株距条栽。每穴2-3苗。</li>
+                        <li><strong>直播：</strong>劳动力短缺地区可使用滚筒式直播机进行湿直播。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：养分与水分管理</h2>
+                    <div class="overflow-x-auto mb-5">
+                        <table class="w-full text-base text-left border">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 border">时期</th>
+                                    <th class="px-4 py-3 border">肥料</th>
+                                    <th class="px-4 py-3 border">作用</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4 py-3 border">7-14天</td>
+                                    <td class="px-4 py-3 border">尿素</td>
+                                    <td class="px-4 py-3 border">促进分蘖</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">30-40天</td>
+                                    <td class="px-4 py-3 border">尿素+钾肥</td>
+                                    <td class="px-4 py-3 border">穗发育</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 border">抽穗期</td>
+                                    <td class="px-4 py-3 border">钾肥 (MOP)</td>
+                                    <td class="px-4 py-3 border">籽粒灌浆</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-gray-800 text-lg"><strong>水分管理：</strong>初期保持2英寸水层。收获前10-14天完全排水。</p>
+                </div>
+                <!-- Step 6 & 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步与第七步：病虫害防治与收获</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>病虫害管理：</strong>监测螟虫和稻瘟病。实施IPM技术。</li>
+                        <li><strong>收获：</strong>80-85%籽粒变金黄时收获。将稻谷干燥至含水量低于14%。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart KyaingTong
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/monsoon_rice')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

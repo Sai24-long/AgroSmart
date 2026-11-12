@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>စပါး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: { sans: ['Inter', 'Padauk', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+
+        <!-- 🟢 အပေါ်ဆုံးမှာ ကျိုင်းတုံမြို့အကြောင်း (Hero Section) -->
+        <div class="bg-white rounded-2xl shadow-md overflow-hidden mb-8">
+            <img src="{{ url_for('static', filename='images/rice.jpg') }}" alt="Kengtung Rice"
+                class="w-full h-64 object-cover"
+                onerror="this.src='https://via.placeholder.com/1200x400/10b981/ffffff?text=Kengtung+Rice+Fields'">
+            <div class="p-8">
+                <h1 class="text-3xl font-extrabold text-gray-900 mb-4">ကျိုင်းတုံမြို့ စပါးစိုက်ပျိုးခြင်း</h1>
+                <p class="text-gray-700 text-lg">
+                    ကျိုင်းတုံမြို့သည် ရှမ်းပြည်နယ်အရှေ့ပိုင်းတွင် တည်ရှိပြီး ရာသီဥတုမှာ သင့်တင့်မျှတသည်။ ကျိုင်းတုံဒေသ၏
+                    မြေဆီလွှာနှင့် ရာသီဥတုသည် စပါးစိုက်ပျိုးရန် အလွန်သင့်တော်ပါသည်။
+                    ဤဒေသတွင် အဓိကအားဖြင့် <strong>မိုးစပါး</strong> နှင့် <strong>နွေစပါး</strong> ဟူ၍ (၂) မျိုး
+                    စိုက်ပျိုးလေ့ရှိပါသည်။
+                    သင့်အနေနဲ့ စိုက်ပျိုးလိုသည့် စပါးအမျိုးအစားကို အောက်တွင် ရွေးချယ်ကြည့်ရှုနိုင်ပါသည်။
+                </p>
+            </div>
+        </div>
+
+        <!-- 🟢 မိုးစပါးနှင့် နွေစပါး ရွေးချယ်ရန် ခလုတ်များ -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- မိုးစပါး Card -->
+            <a href="/guide/monsoon_rice"
+                class="group bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
+                <div class="text-5xl mb-4 group-hover:scale-110 transition">🌧️</div>
+                <h2 class="text-2xl font-bold text-brand-700 mb-2">မိုးစပါး စိုက်ပျိုးနည်း</h2>
+                <p class="text-gray-600 mb-4">မိုးရေကို အဓိကမှီခိုပြီး စိုက်ပျိုးသော စပါးအမျိုးအစားဖြစ်သည်။
+                    မျိုးရွေးချယ်ခြင်းမှ ရိတ်သိမ်းခြင်းအထိ အဆင့်ဆင့် လမ်းညွှန်ချက်များ။</p>
+                <span class="text-brand-600 font-semibold flex items-center gap-2">အသေးစိတ် ကြည့်ရှုရန် <svg
+                        class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg></span>
+            </a>
+
+            <!-- နွေစပါး Card -->
+            <a href="/guide/summer_rice"
+                class="group bg-white rounded-2xl shadow-md p-6 border border-gray-100 hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
+                <div class="text-5xl mb-4 group-hover:scale-110 transition">☀️</div>
+                <h2 class="text-2xl font-bold text-orange-600 mb-2">နွေစပါး စိုက်ပျိုးနည်း</h2>
+                <p class="text-gray-600 mb-4">ဆည်ရေ၊ မြစ်ရေများကို အသုံးပြု၍ နွေရာသီတွင် စိုက်ပျိုးသော
+                    စပါးအမျိုးအစားဖြစ်သည်။ ရေစီမံခန့်ခွဲမှုနှင့် ပြုစုနည်းများ။</p>
+                <span class="text-orange-600 font-semibold flex items-center gap-2">အသေးစိတ် ကြည့်ရှုရန် <svg
+                        class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg></span>
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t py-6 mt-12 text-center text-base text-gray-500">
+        © 2026 AgroSmart KyaingTong
+    </footer>
+
+</body>
+
+</html>

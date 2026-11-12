@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroSmart | Kengtung</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: { sans: ['Inter', 'Padauk', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: transparent !important;
+            position: relative;
+            min-height: 100vh;
+            /* Google Translate Bar ကို ဖျောက်ရန် */
+            top: 0 !important;
+        }
+
+        .bg-image-layer {
+            background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
+        }
+
+        .bg-white {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        nav.bg-white {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(12px);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 0.75rem;
+            z-index: 1;
+        }
+
+        .custom-crop-icon {
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 50%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .custom-crop-icon.selected {
+            border-color: #ef4444 !important;
+            transform: scale(1.2);
+            z-index: 999 !important;
+        }
+
+        /* Google Translate Bar ကို ဖျောက်ထားမယ် */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .skiptranslate {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <!-- 🖼️ နောက်ခံပုံ အပိုင်း -->
+    <div class="fixed inset-0 -z-20 bg-image-layer"></div>
+    <div class="fixed inset-0 -z-10 bg-white/40 backdrop-blur-sm"></div>
+
+    <!-- Navigation Bar -->
+    <nav
+        class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm z-50 sticky top-0">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-gray-900 tracking-tight"><i class="fa-solid fa-leaf text-green-400"></i>
+                AgroSmart <span class="text-brand-500">KyaingTong</span></span>
+        </div>
+
+        <div class="flex items-center gap-4 text-sm font-semibold text-gray-600">
+            <!-- 🔔 Alert Bell -->
+            <button id="alertBell" onclick="toggleAlertPanel()"
+                class="relative text-gray-500 hover:text-brand-600 transition text-lg">
+                🔔
+                <span id="alertBadge"
+                    class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">0</span>
+            </button>
+
+            <!-- အရေးကြီးဆုံး Link များ -->
+            <a href="/" class="hover:text-brand-600 transition hidden md:block">ပင်မ</a>
+            <a href="/prices" class="hover:text-brand-600 transition hidden md:block">💰 စျေးနှုန်းများ</a>
+            <a href="/chatbot_similarity" class="hover:text-brand-600 transition hidden md:block">ဆွေးနွေးခန်း</a>
+
+            <!-- Menu Dropdown -->
+            <div class="relative">
+                <button onclick="toggleGuideMenu()"
+                    class="hover:text-brand-600 transition flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <i class="fa-solid fa-bars"></i> Menu
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <!-- Dropdown Menu -->
+                <div id="guideMenu"
+                    class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 text-sm font-normal z-50">
+                    <a href="/weather" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🌤️
+                        မိုးလေဝသ</a>
+                    <a href="/news" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">📰
+                        သတင်းနှင့် ရောဂါ</a>
+                    <a href="/crop_guide_params"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🌱 မြေဆီလွှာ</a>
+                    <a href="/about_kengtung"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">ℹ️
+                        ကျိုင်းတုံအကြောင်း</a>
+                    <a href="/guide" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">❓
+                        အသုံးပြုနည်း</a>
+
+                    <div class="border-t border-gray-100 my-2"></div>
+
+                    <!-- ဘာသာစကား ပြောင်းရန် -->
+                    <div class="px-4 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">ဘာသာစကား</div>
+                    <a href="#" onclick="doGTranslate('my|en'); return false;"
+                        class="block px-4 py-2 text-blue-600 font-bold hover:bg-blue-50">🌐 English</a>
+                    <a href="#" onclick="doGTranslate('my|my'); return false;"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50">🇲🇲 မြန်မာ</a>
+
+                    <div class="border-t border-gray-100 my-2"></div>
+
+                    <!-- စိုက်ပျိုးနည်းများ -->
+                    <div class="px-4 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider">စိုက်ပျိုးနည်းများ
+                    </div>
+                    <a href="/guide/rice"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🌾 စပါး</a>
+                    <a href="/guide/tea" class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🍵
+                        လက်ဖက်</a>
+                    <a href="/guide/coffee"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">☕ ကော်ဖီ</a>
+                    <a href="/guide/rubber"
+                        class="block px-4 py-2 text-gray-700 hover:bg-brand-50 hover:text-brand-700">🌳 ရော်ဘာ</a>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="/admin"
+                class="hover:text-red-600 transition flex items-center gap-1 text-red-600 font-bold ml-2">👑 Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-1 max-w-[1600px] mx-auto w-full p-4 md:p-6 space-y-6">
+
+        <!-- 🗺️ မြေပုံ အပိုင်း -->
+        <div class="w-full h-[75vh] bg-white rounded-xl shadow-lg p-2 border border-gray-100 relative">
+            <!-- မြေပုံပေါ်က Dropdown များ -->
+            <div
+                class="absolute top-6 left-6 z-[1000] bg-white p-3 rounded-lg shadow-md border border-gray-200 flex flex-col gap-2">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">ကျေးဇူးပြုပြီး
+                        သီးနှံစိုက်ခင်းရွေးချယ်ပါ</label>
+                    <select id="farmSelect"
+                        class="w-64 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                        <option value="">-- ကျေးဇူးပြုပြီး သီးနှံစိုက်ခင်းရွေးချယ်ပါ --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-brand-600 mb-1">🔍 သီးနှံအလိုက် ရှာဖွေရန်</label>
+                    <select id="cropFilter" onchange="filterByCrop(this.value)"
+                        class="w-64 bg-brand-50 border border-brand-300 text-brand-800 text-sm rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none font-semibold">
+                        <option value="all">🌐 သီးနှံအားလုံး (All Crops)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="w-full h-full rounded-lg overflow-hidden border border-gray-200">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- 📊 Dashboard အပိုင်း -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+
+            <!-- 💡 Daily Farming Tips Card -->
+            <div
+                class="bg-gradient-to-r from-emerald-400 to-teal-500 rounded-xl shadow-lg p-5 text-white relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="absolute -right-4 -top-4 opacity-20 text-6xl">💡</div>
+                    <h3 class="text-sm font-bold text-white/80 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb"></i> ဒီနေ့အတွက် အကြံပြုချက်
+                    </h3>
+                    <p id="daily-tip-text" class="text-lg font-semibold leading-relaxed relative z-10 mt-4">
+                        အကြံပြုချက်များ ရယူနေပါသည်...
+                    </p>
+                </div>
+                <div class="mt-4 text-xs text-white/80 flex items-center gap-1 relative z-10">
+                    <i class="fa-solid fa-calendar-day"></i> <span id="daily-tip-date"></span>
+                </div>
+            </div>
+
+            <!-- 🚨 Alert System Card -->
+            <div id="alertCard"
+                class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 hidden lg:col-span-2 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">🚨 မိုးရေချိန်နှင့်ပက်သက်သော
+                        သတိပေးချက်များ</h3>
+                    <span id="alertLevelBadge" class="text-xs px-2 py-1 rounded-md font-bold"></span>
+                </div>
+                <div id="alertList" class="space-y-2 overflow-y-auto flex-1"></div>
+                <div id="noAlerts"
+                    class="text-center text-gray-400 text-sm py-4 hidden flex-1 flex items-center justify-center">
+                    ✅ အန္တရာယ်မရှိပါ — သာယာပါတယ်
+                </div>
+
+                <!-- 📧 Email Subscribe -->
+                <div class="border-t pt-3 mt-auto">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">📧 သတိပေးချက်ကို ရယူရန်</label>
+                    <div class="flex gap-2">
+                        <input type="email" id="subscribeEmail" placeholder="you@gmail.com"
+                            class="flex-1 bg-gray-50 border border-gray-300 text-sm rounded-lg px-3 py-2 outline-none focus:ring-brand-500 focus:border-brand-500">
+                        <button onclick="subscribeEmail()"
+                            class="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-3 py-2 rounded-lg transition">Subscribe</button>
+                    </div>
+                    <div id="subscribeMsg" class="text-xs mt-1 text-gray-500"></div>
+                </div>
+            </div>
+
+            <!-- Farm Info -->
+            <div class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 flex flex-col">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Selected Farm</h3>
+                <div class="flex-1 flex flex-col justify-center">
+                    <div id="empty-state" class="text-center py-10 text-gray-400">
+                        <div class="text-5xl mb-3">🌾</div>
+                        <p class="text-sm font-semibold">မြေပုံပေါ်မှ စိုက်ခင်းတစ်ခုကို နှိပ်ပြီး<br>အချက်အလက်များ
+                            ကြည့်ရှုပါ</p>
+                    </div>
+
+                    <div id="farm-info-container" class="hidden">
+                        <h2 id="farm-title" class="text-xl font-bold text-gray-800 mb-1"></h2>
+                        <div id="farm-details" class="text-sm text-gray-600 space-y-1 mt-2"></div>
+                        <div id="crop-image" class="mt-4"></div>
+
+                        <!-- 📈 ဒေသစျေးကွက်ဈေး -->
+                        <div id="price-card" class="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200 hidden">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs font-bold text-yellow-800">📈 ဒေသစျေးကွက်ဈေး</span>
+                                <span id="crop-price-note" class="text-[10px] text-yellow-600"></span>
+                            </div>
+                            <div class="flex justify-between items-end">
+                                <span id="crop-price-display" class="text-lg font-bold text-yellow-900">-</span>
+                                <span id="crop-price-unit" class="text-xs text-yellow-700 font-semibold pb-1"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="seeMoreBtn" onclick="openDetailPage()"
+                    class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition text-sm flex justify-center items-center gap-2 hidden">
+                    အသေးစိတ် အပြည့်အစုံ ကြည့်ရန်
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- 🌾 သီးနှံအလိုက် စိုက်ပျိုးထားသော ရွာများ -->
+            <div id="cropVillagesCard" class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 hidden flex-col">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">🌾 ဤသီးနှံကို စိုက်ပျိုးသော
+                    ရွာများ</h3>
+                <div id="cropVillagesList" class="flex flex-wrap gap-2 overflow-y-auto flex-1 content-start"></div>
+            </div>
+
+            <!-- 🌱 မြေအမျိုးအစားအလိုက် သီးနှံ အကြံပြုချက် Card -->
+            <div id="soilCropCard" class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 hidden flex-col">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">🌱 သင့်မြေနှင့် ကိုက်ညီသော
+                    သီးနှံများ</h3>
+                <div id="soilCropList" class="flex flex-wrap gap-2 overflow-y-auto flex-1 content-start">
+                    <p class="text-xs text-gray-400">Data များ ရယူနေပါသည်...</p>
+                </div>
+            </div>
+
+            <!-- Weather Chart & Details -->
+            <div class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 flex flex-col">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Weather Forecast</h3>
+                    <span id="station-info"
+                        class="bg-brand-50 text-brand-700 text-xs px-2 py-1 rounded-md font-semibold"
+                        style="display:none;"></span>
+                </div>
+                <div class="h-40 w-full relative">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+
+                <!-- မိုးလေဝသ အသေးစိတ် အကွက်လေးများ -->
+                <div class="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <div class="text-center">
+                        <div class="text-xs text-gray-400 mb-1">အပူချိန်</div>
+                        <div id="weather-temp" class="font-bold text-gray-800 text-sm">-- °C</div>
+                    </div>
+                    <div class="text-center border-l border-gray-100">
+                        <div class="text-xs text-gray-400 mb-1">မိုးရေ</div>
+                        <div id="weather-rain" class="font-bold text-blue-600 text-sm">-- mm</div>
+                    </div>
+                    <div class="text-center border-l border-gray-100">
+                        <div class="text-xs text-gray-400 mb-1">စိုထိုင်းဆ</div>
+                        <div id="weather-humid" class="font-bold text-teal-600 text-sm">-- %</div>
+                    </div>
+                    <div class="text-center border-l border-gray-100">
+                        <div class="text-xs text-gray-400 mb-1">လေတိုက်နှုန်း</div>
+                        <div id="weather-wind" class="font-bold text-purple-600 text-sm">-- m/s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📸 သီးနှံပုံများ ပြခန်း (Crop Gallery) -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100 md:col-span-2 lg:col-span-3 mt-2">
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-brand-100 p-2 rounded-lg text-brand-600">
+                        <i class="fa-solid fa-images"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">ကျိုင်းတုံဒေသထွက် အဓိကထွက်သီးနှံများ</h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- စပါး -->
+                    <div class="group relative overflow-hidden rounded-xl h-48 shadow-sm cursor-pointer">
+                        <img src="/static/images/rice.jpg" alt="Rice"
+                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                            onerror="this.src='https://via.placeholder.com/300x200?text=Rice'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h4 class="font-bold text-lg">🌾 စပါး</h4>
+                        </div>
+                    </div>
+
+                    <!-- လက်ဖက် -->
+                    <div class="group relative overflow-hidden rounded-xl h-48 shadow-sm cursor-pointer">
+                        <img src="/static/images/tea.jpg" alt="Tea"
+                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                            onerror="this.src='https://via.placeholder.com/300x200?text=Tea'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h4 class="font-bold text-lg">🍵 လက်ဖက်</h4>
+                        </div>
+                    </div>
+
+                    <!-- ကော်ဖီ -->
+                    <div class="group relative overflow-hidden rounded-xl h-48 shadow-sm cursor-pointer">
+                        <img src="/static/images/coffee.jpg" alt="Coffee"
+                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                            onerror="this.src='https://via.placeholder.com/300x200?text=Coffee'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h4 class="font-bold text-lg">☕ ကော်ဖီ</h4>
+                        </div>
+                    </div>
+
+                    <!-- ရော်ဘာ -->
+                    <div class="group relative overflow-hidden rounded-xl h-48 shadow-sm cursor-pointer">
+                        <img src="/static/images/robber.jpg" alt="Rubber"
+                            class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                            onerror="this.src='https://via.placeholder.com/300x200?text=Rubber'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+                        <div class="absolute bottom-3 left-3 text-white">
+                            <h4 class="font-bold text-lg">🌳 ရော်ဘာ</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🗓️ Crop Calendar -->
+            <div class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 flex flex-col">
+                <div class="flex justify-between items-center mb-3 shrink-0">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">🗓️ လအလိုက် စိုက်ပျိုးသင့်သော
+                        သီးနှံများ</h3>
+                    <select id="monthSelect" onchange="loadCalendarForMonth(this.value)"
+                        class="bg-brand-50 border border-brand-200 text-brand-700 text-xs rounded-lg px-2 py-1 outline-none font-bold">
+                        <option value="1">ဇန်နဝါရီ</option>
+                        <option value="2">ဖေဖော်ဝါရီ</option>
+                        <option value="3">မတ်</option>
+                        <option value="4">ဧပြီ</option>
+                        <option value="5">မေ</option>
+                        <option value="6">ဇွန်</option>
+                        <option value="7">ဇူလိုင်</option>
+                        <option value="8">ဩဂုတ်</option>
+                        <option value="9">စက်တင်ဘာ</option>
+                        <option value="10">အောက်တိုဘာ</option>
+                        <option value="11">နိုဝင်ဘာ</option>
+                        <option value="12">ဒီဇင်ဘာ</option>
+                    </select>
+                </div>
+
+                <div id="calendarMonth" class="text-lg font-bold text-brand-600 mb-3 shrink-0"></div>
+
+                <div class="space-y-3 text-sm shrink-0">
+                    <div>
+                        <div class="text-xs font-bold text-green-700 mb-1">🌱 စိုက်ပျိုးရမည့် သီးနှံများ</div>
+                        <div id="calPlanting" class="flex flex-wrap gap-1"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-amber-700 mb-1">🌾 ရိတ်သိမ်းရန် သင့်တော်သော သီးနှံများ</div>
+                        <div id="calHarvest" class="flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-4 border-t border-gray-200">
+                    <div class="text-xs font-bold text-blue-700 mb-2 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-right"></i> လာမယ့်လအတွက် ကြိုတင်ပြင်ဆင်ရန်
+                    </div>
+                    <div id="nextMonthInfo"
+                        class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-sm text-blue-800">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📈 ဈေးနှုန်း လမ်းကြောင်း Chart -->
+            <div
+                class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 flex flex-col md:col-span-2 lg:col-span-1">
+                <div class="flex justify-between items-center mb-3 shrink-0">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">📈 ဈေးနှုန်းတက်ကျ လမ်းကြောင်း
+                    </h3>
+                    <select id="dashCropSelect" onchange="loadDashboardTrend(this.value)"
+                        class="bg-brand-50 border border-brand-200 text-brand-700 text-xs rounded-lg px-2 py-1 outline-none font-bold">
+                        <option value="Rice">စပါး</option>
+                        <option value="Tea">လက်ဖက်</option>
+                        <option value="Coffee">ကော်ဖီ</option>
+                        <option value="Rubber">ရော်ဘာ</option>
+                        <option value="Corn">ပြောင်း</option>
+                        <option value="Peanut">မြေပဲ</option>
+                    </select>
+                </div>
+                <div class="flex-1 w-full relative min-h-[150px]">
+                    <canvas id="dashboardTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ML Prediction -->
+            <div
+                class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl shadow-xl p-6 text-white border border-brand-500/30 md:col-span-2 lg:col-span-1 flex flex-col">
+                <div class="flex items-center gap-2 mb-5 border-b border-white/20 pb-3 shrink-0">
+                    <div class="bg-white/20 p-2 rounded-lg">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-base font-bold tracking-wide">AI ဖြင့် သီးနှံ စိုက်ပျိုးရန် အကြံပြုချက်</h3>
+                </div>
+
+                <form id="predictForm" class="space-y-4 flex-1 flex flex-col">
+                    <div class="grid grid-cols-2 gap-4 shrink-0">
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">နိုက်ထရိုဂျင် (N)</label>
+                            <div class="relative">
+                                <input type="number" id="N" value="90" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                                <span class="absolute right-3 top-2 text-xs text-white/50">kg/ha</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">ဖော့စဖရပ် (P)</label>
+                            <div class="relative">
+                                <input type="number" id="P" value="42" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                                <span class="absolute right-3 top-2 text-xs text-white/50">kg/ha</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">ပိုတက်ဆီယမ် (K)</label>
+                            <div class="relative">
+                                <input type="number" id="K" value="43" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                                <span class="absolute right-3 top-2 text-xs text-white/50">kg/ha</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">အပူချိန်</label>
+                            <div class="relative">
+                                <input type="number" id="temp" value="20.8" step="0.1" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                                <span class="absolute right-3 top-2 text-xs text-white/50">°C</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">စိုထိုင်းဆ</label>
+                            <div class="relative">
+                                <input type="number" id="humidity" value="82" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                                <span class="absolute right-3 top-2 text-xs text-white/50">%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-brand-100 mb-1">မြေချဉ်ငံ (pH)</label>
+                            <div class="relative">
+                                <input type="number" id="ph" value="6.5" step="0.1" required
+                                    class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shrink-0">
+                        <label class="block text-[11px] font-bold text-brand-100 mb-1">မိုးရေချိန်</label>
+                        <div class="relative">
+                            <input type="number" id="rainfall" value="202.9" step="0.1" required
+                                class="w-full bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition text-sm font-semibold">
+                            <span class="absolute right-3 top-2 text-xs text-white/50">mm</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-2">
+                        <button type="submit"
+                            class="w-full bg-white text-brand-700 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex justify-center items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            ခွဲခြမ်းစိတ်ဖြာမည် (Analyze)
+                        </button>
+                    </div>
+                </form>
+                <div id="predictionResult" class="mt-4 text-sm shrink-0"></div>
+            </div>
+
+            <!-- 📊 စိုက်ပျိုးထားသော ရွာများ ဇယား -->
+            <div
+                class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 md:col-span-2 lg:col-span-3 flex flex-col">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">📊 စိုက်ပျိုးထားသော ရွာများ
+                    စာရင်း</h3>
+                <div class="h-64 overflow-y-auto rounded-lg border border-gray-200">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 shadow-sm">
+                            <tr>
+                                <th class="px-4 py-3">အမှတ်</th>
+                                <th class="px-4 py-3">ရွာအမည်</th>
+                                <th class="px-4 py-3">သီးနှံ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="villageTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 🌱 စိုက်ပျိုးထားသော သီးနှံများ ဇယား -->
+            <div
+                class="bg-white rounded-xl shadow-lg p-5 border border-gray-100 md:col-span-2 lg:col-span-3 flex flex-col">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">🌱 စိုက်ပျိုးထားသော သီးနှံများ
+                    စာရင်း</h3>
+                <div class="h-64 overflow-y-auto rounded-lg border border-gray-200">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 shadow-sm">
+                            <tr>
+                                <th class="px-4 py-3">အမှတ်</th>
+                                <th class="px-4 py-3">သီးနှံအမည်</th>
+                                <th class="px-4 py-3">အင်္ဂလိပ်အမည်</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cropTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 🦶 Footer -->
+    <footer class="bg-slate-900 text-gray-300 py-10 mt-auto shrink-0">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-green-600 p-2 rounded-lg text-white">🌾</div>
+                    <h2 class="text-2xl font-bold text-white">AgroSmart <span class="text-green-500">KyaingTong</span>
+                    </h2>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    ကျိုင်းတုံဒေသရှိ တောင်သူများအတွက် ခေတ်မီနည်းပညာနှင့် ရာသီဥတုအချက်အလက်များကို အခြေခံပြီး
+                    စိုက်ပျိုးရေးဆိုင်ရာ အကြံပြုချက်များနှင့် ဈေးကွက်အချက်အလက်များကို ပံ့ပိုးပေးနေသော စနစ်ဖြစ်ပါသည်။
+                </p>
+                <div class="flex gap-4">
+                    <a href="#"
+                        class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-green-600 hover:text-white transition"><i
+                            class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"
+                        class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-green-600 hover:text-white transition"><i
+                            class="fa-brands fa-viber"></i></a>
+                    <a href="#"
+                        class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-green-600 hover:text-white transition"><i
+                            class="fa-solid fa-envelope"></i></a>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">အမြန်လင့်ခ်များ</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ပင်မစာမျက်နှာ
+                            (Dashboard)</a></li>
+                    <li><a href="/about_kengtung" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> ကျိုင်းတုံအကြောင်း</a></li>
+                    <li><a href="/prices" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> သီးနှံစျေးနှုန်းများ</a>
+                    </li>
+                    <li><a href="/crop_guide_params" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> မြေဆီလွှာ အမျိုးအစားများ</a>
+                    </li>
+                    <li><a href="/guide" class="hover:text-green-400 transition flex items-center gap-2"><i
+                                class="fa-solid fa-angle-right text-green-500 text-xs"></i> အသုံးပြုနည်း လမ်းညွှန်</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">ဆက်သွယ်ရန်</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-green-500"></i>
+                        <span>ကျိုင်းတုံမြို့၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်း၊ မြန်မာနိုင်ငံ</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-green-500"></i>
+                        <span>+95 9 123 456 789</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-green-500"></i>
+                        <span>info@agrosmart.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2026 AgroSmart KyaingTong. All Rights Reserved.</p>
+            <p class="mt-1">Developed with <i class="fa-solid fa-heart text-red-500 mx-1"></i> for Kengtung Farmers</p>
+        </div>
+    </footer>
+
+    <!-- 🌐 Google Translate Script (ဖျောက်ထားသော) -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'my',
+                includedLanguages: 'en,my',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+
+            setTimeout(() => {
+                const banner = document.querySelector('.goog-te-banner-frame');
+                if (banner) banner.style.display = 'none';
+                document.body.style.top = '0px';
+            }, 1000);
+        }
+
+        function doGTranslate(lang_pair) {
+            if (lang_pair == 'my|en') {
+                // အင်္ဂလိပ်လို ပြောင်းမယ်
+                document.cookie = "googtrans=/my/en; path=/";
+                location.reload();
+            } else if (lang_pair == 'my|my') {
+                // မြန်မာလို ပြန်ပြောင်းမယ် (Cookie ကို ရှင်းမယ်)
+                document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                location.reload();
+            }
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var map = L.map('map').setView([21.29, 99.60], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        map.on('click', function (e) {
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent("<div class='text-center text-sm font-semibold p-1'>🚫 ဤနေရာတွင် စိုက်ခင်းမရှိပါ။<br><span class='text-xs text-gray-500 font-normal'>မျိုးစေ့များ မစိုက်ပျိုးရသေးပါ။</span></div>")
+                .openOn(map);
+        });
+
+        var forecastChart = null;
+        var allFarmsData = [];
+        var farmMarkers = {};
+        var currentFarmGuide = null;
+        var currentFarmId = null;
+
+        var selectedMarker = null;
+        var selectedPolygon = null;
+
+        fetch('/api/farms')
+            .then(res => res.json())
+            .then(data => {
+                allFarmsData = data;
+                var select = document.getElementById('farmSelect');
+                var cropFilter = document.getElementById('cropFilter');
+                var uniqueCrops = new Set();
+
+                data.forEach((farm, index) => {
+                    var option = document.createElement('option');
+                    option.value = index;
+                    option.text = farm.farm_name;
+                    select.appendChild(option);
+
+                    let cropEn = farm.current_crop.split('(')[0].trim();
+                    let cropMm = farm.current_crop.includes('(') ? farm.current_crop.split('(')[1].replace(')', '').trim() : cropEn;
+
+                    if (!uniqueCrops.has(cropEn)) {
+                        uniqueCrops.add(cropEn);
+                        let opt = document.createElement('option');
+                        opt.value = cropEn;
+                        opt.text = `🌱 ${cropMm} (${cropEn})`;
+                        cropFilter.appendChild(opt);
+                    }
+
+                    let iconEmoji = '🌱';
+                    let crop = (farm.current_crop || '').toLowerCase();
+                    if (crop.includes('rice') || crop.includes('စပါး')) iconEmoji = '🌾';
+                    else if (crop.includes('tea') || crop.includes('လက်ဖက်')) iconEmoji = '🍵';
+                    else if (crop.includes('corn') || crop.includes('ပြောင်း')) iconEmoji = '🌽';
+                    else if (crop.includes('coffee') || crop.includes('ကော်ဖီ')) iconEmoji = '☕';
+                    else if (crop.includes('rubber') || crop.includes('ရော်ဘာ')) iconEmoji = '🌳';
+                    else if (crop.includes('strawberry') || crop.includes('စတော်ဘယ်ရီ')) iconEmoji = '🍓';
+                    else if (crop.includes('watermelon') || crop.includes('ဖရဲသီး')) iconEmoji = '🍉';
+                    else if (crop.includes('peanut') || crop.includes('မြေပဲ')) iconEmoji = '🥜';
+                    else if (crop.includes('pineapple') || crop.includes('နာနတ်သီး')) iconEmoji = '🍍';
+                    else if (crop.includes('crab apple') || crop.includes('ပင်စိမ်းသီး')) iconEmoji = '🍏';
+                    else if (crop.includes('damson') || crop.includes('မက်မန်းသီး')) iconEmoji = '🍑';
+
+                    var customIcon = L.divIcon({
+                        className: 'custom-crop-icon',
+                        html: iconEmoji,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    var marker = L.marker([farm.latitude, farm.longitude], { icon: customIcon }).addTo(map);
+                    farmMarkers[index] = marker;
+
+                    marker.on('click', function () {
+                        showFarmDetails(index);
+                        select.value = index;
+
+                        if (selectedMarker) {
+                            let oldEl = selectedMarker.getElement();
+                            if (oldEl) oldEl.classList.remove('selected');
+                        }
+                        let newEl = marker.getElement();
+                        if (newEl) newEl.classList.add('selected');
+                        selectedMarker = marker;
+
+                        if (selectedPolygon) { map.removeLayer(selectedPolygon); }
+
+                        var lat = farm.latitude;
+                        var lng = farm.longitude;
+                        var offset = 0.005;
+                        var bounds = [
+                            [lat - offset, lng - offset],
+                            [lat - offset, lng + offset],
+                            [lat + offset, lng + offset],
+                            [lat + offset, lng - offset]
+                        ];
+
+                        selectedPolygon = L.polygon(bounds, {
+                            color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.15, weight: 2, dashArray: '5, 5'
+                        }).addTo(map);
+
+                        selectedPolygon.bindTooltip("🌱 စိုက်ပျိုးမြေ ဧရိယာဖြစ်ပါသည်", {
+                            permanent: true, direction: 'center',
+                            className: 'bg-white text-red-600 font-bold border border-red-500 rounded shadow-sm text-xs px-2 py-1'
+                        }).openTooltip();
+                    });
+                });
+                filterByCrop('all');
+            });
+
+        document.getElementById('farmSelect').addEventListener('change', function (e) {
+            var selectedIndex = e.target.value;
+            if (selectedIndex !== "") {
+                showFarmDetails(parseInt(selectedIndex));
+                var farm = allFarmsData[selectedIndex];
+                map.flyTo([farm.latitude, farm.longitude], 13, { duration: 1.5 });
+
+                if (selectedMarker) {
+                    let oldEl = selectedMarker.getElement();
+                    if (oldEl) oldEl.classList.remove('selected');
+                }
+                let currentMarker = farmMarkers[selectedIndex];
+                let newEl = currentMarker.getElement();
+                if (newEl) newEl.classList.add('selected');
+                selectedMarker = currentMarker;
+
+                if (selectedPolygon) { map.removeLayer(selectedPolygon); }
+
+                var lat = farm.latitude;
+                var lng = farm.longitude;
+                var offset = 0.005;
+                var bounds = [
+                    [lat - offset, lng - offset],
+                    [lat - offset, lng + offset],
+                    [lat + offset, lng + offset],
+                    [lat + offset, lng - offset]
+                ];
+                selectedPolygon = L.polygon(bounds, {
+                    color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.15, weight: 2, dashArray: '5, 5'
+                }).addTo(map);
+
+                selectedPolygon.bindTooltip("🌱 စိုက်ပျိုးမြေ ဧရိယာဖြစ်ပါသည်", {
+                    permanent: true, direction: 'center',
+                    className: 'bg-white text-red-600 font-bold border border-red-500 rounded shadow-sm text-xs px-2 py-1'
+                }).openTooltip();
+            }
+        });
+
+        function filterByCrop(selectedCrop) {
+            let villages = [];
+            if (selectedPolygon) { map.removeLayer(selectedPolygon); selectedPolygon = null; }
+            if (selectedMarker) {
+                let oldEl = selectedMarker.getElement();
+                if (oldEl) oldEl.classList.remove('selected');
+                selectedMarker = null;
+            }
+
+            allFarmsData.forEach((farm, index) => {
+                let marker = farmMarkers[index];
+                let cropEn = farm.current_crop.split('(')[0].trim();
+
+                if (selectedCrop === 'all') {
+                    if (!map.hasLayer(marker)) map.addLayer(marker);
+                    let el = marker.getElement();
+                    if (el) el.style.display = 'flex';
+                }
+                else if (cropEn === selectedCrop) {
+                    if (!map.hasLayer(marker)) map.addLayer(marker);
+                    let el = marker.getElement();
+                    if (el) el.style.display = 'flex';
+                    villages.push(farm.farm_name);
+                }
+                else {
+                    let el = marker.getElement();
+                    if (el) el.style.display = 'none';
+                }
+            });
+
+            const villagesCard = document.getElementById('cropVillagesCard');
+            const villagesList = document.getElementById('cropVillagesList');
+
+            if (selectedCrop === 'all' || villages.length === 0) {
+                villagesCard.classList.add('hidden');
+            } else {
+                villagesCard.classList.remove('hidden');
+                const uniqueVillages = [...new Set(villages)];
+                villagesList.innerHTML = uniqueVillages.map(v =>
+                    `<span class="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm">📍 ${v}</span>`
+                ).join('');
+            }
+        }
+
+        function showFarmDetails(index) {
+            var farm = allFarmsData[index];
+            currentFarmId = farm.farm_id;
+
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('farm-info-container').classList.remove('hidden');
+
+            document.getElementById('farm-title').innerText = farm.farm_name;
+
+            let cropDisplay = farm.current_crop;
+            if (cropDisplay.includes('Rice') || cropDisplay.includes('စပါး')) {
+                cropDisplay = 'စပါး';
+            }
+
+            const soilMap = {
+                'Alluvial': 'အနည်ထိုင်မြေ (Meadow Alluvial)',
+                'Lateritic': 'နီညိုရောင်မြေ (Lateritic)',
+                'Meadow & Meadow Alluvial Soils': 'မြက်ခင်းနှင့် မြက်ခင်းအနည်ထိုင်မြေ',
+                'Gley & Gley Swampy Soils': 'ရွံ့ပြာနှင့် ရွံ့ပြာစိမ့်မြေ (Gley Soils)',
+                'Red Brown Forest Soils': 'နီညိုရောင် သစ်တောမြေ (Red Brown Forest)',
+                'Yellow Brown Forest Soils': 'ဝါညိုရောင် သစ်တောမြေ (Yellow Brown Forest)',
+                'Red Earths & Yellow Earths': 'အနီရောင်နှင့် အဝါရောင်မြေ (Red & Yellow Earth)',
+                'Mountainous Brown Forest Soils': 'တောင်တန်းဒေသ ညိုရောင်သစ်တောမြေ',
+                'Mountainous Red Forest Soils': 'တောင်ပေါ်ဒေသ အနီရောင်သစ်တောမြေ',
+                'Clay': 'ရွံ့စေးမြေ (Clay)',
+                'Loam': 'နုန်းမြေ (Loam)',
+                'Sandy': 'သဲမြေ (Sandy)',
+                'Silt': 'နုန်းအနည်မြေ (Silt)'
+            };
+
+            let soilDisplay = farm.soil_type ? farm.soil_type.trim() : 'မသိရပါ';
+            let soilMM = soilMap[soilDisplay] || soilDisplay;
+
+            document.getElementById('farm-details').innerHTML = `
+                <div class="flex items-center gap-2"><span class="font-semibold">သီးနှံ:</span> ${cropDisplay}</div>
+                <div class="flex items-center gap-2"><span class="font-semibold">မြေ:</span> ${soilMM}</div>
+            `;
+
+            document.getElementById('seeMoreBtn').classList.remove('hidden');
+
+            loadGuide(farm.current_crop);
+            loadImage(farm.current_crop);
+            loadWeather(farm.farm_id);
+            loadAlerts(farm.farm_id);
+            loadCropPrice(farm.current_crop);
+            loadSoilCrops(farm.soil_type);
+        }
+
+        function loadGuide(cropName) {
+            let searchName = cropName.includes('(') ? cropName.split('(')[1].replace(')', '').trim() : cropName;
+            fetch(`/api/guide/${searchName}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        currentFarmGuide = null;
+                    } else {
+                        currentFarmGuide = data;
+                    }
+                });
+        }
+
+        function loadImage(cropName) {
+            let imgName = "";
+            if (cropName.includes('Rice') || cropName.includes('စပါး')) imgName = "rice.jpg";
+            else if (cropName.includes('Tea') || cropName.includes('လက်ဖက်')) imgName = "tea.jpg";
+            else if (cropName.includes('Corn') || cropName.includes('ပြောင်း')) imgName = "corn.jpg";
+            else if (cropName.includes('Rubber') || cropName.includes('ရော်ဘာ')) imgName = "robber.jpg";
+            else if (cropName.includes('Coffee') || cropName.includes('ကော်ဖီ')) imgName = "coffee.jpg";
+            else if (cropName.includes('Nut') || cropName.includes('မြေပဲ')) imgName = "peanut.jpg";
+            else if (cropName.includes('Crab Apple') || cropName.includes('ပင်စိမ်းသီး')) imgName = "crab_apple.jpg";
+            else if (cropName.includes('Damson') || cropName.includes('မက်မန်းသီး')) imgName = "damson.jpg";
+            else if (cropName.includes('Watermelon') || cropName.includes('ဖရဲသီး')) imgName = "watermelon.jpg";
+            else if (cropName.includes('Pineapple') || cropName.includes('နာနတ်သီး')) imgName = "pineapple.jpg";
+            else if (cropName.includes('Strawberry') || cropName.includes('စတော်ဘယ်ရီ')) imgName = "strawberry.jpg";
+
+            if (imgName) {
+                document.getElementById('crop-image').innerHTML = `
+                    <img src="/static/images/${imgName}" class="w-full h-32 object-cover rounded-lg shadow-sm" alt="${cropName}" onerror="this.src='https://via.placeholder.com/300x150?text=No+Image'">
+                `;
+            } else {
+                document.getElementById('crop-image').innerHTML = "";
+            }
+        }
+
+        function loadWeather(farmId) {
+            fetch(`/api/weather/${farmId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('station-info').style.display = "block";
+                        document.getElementById('station-info').innerText = "မိုးလေဝသဒေတာ မရပါ";
+                        return;
+                    }
+
+                    document.getElementById('station-info').style.display = "block";
+                    document.getElementById('station-info').innerText = `📍 ${data.nearest_station} (${data.distance_km}km)`;
+
+                    let labels = data.weather_data.map(item => item.date.slice(-2) + '/' + item.date.slice(4, 6));
+                    let rainData = data.weather_data.map(item => item.rainfall);
+                    let tempData = data.weather_data.map(item => item.temp);
+
+                    if (data.weather_data.length > 0) {
+                        let latestData = data.weather_data[data.weather_data.length - 1];
+
+                        document.getElementById('weather-temp').innerText = `${latestData.temp.toFixed(1)} °C`;
+                        document.getElementById('weather-rain').innerText = `${latestData.rainfall.toFixed(1)} mm`;
+
+                        let humidity = (60 + (latestData.rainfall * 0.5)).toFixed(1);
+                        let wind = (2.0 + (latestData.temp * 0.05)).toFixed(1);
+
+                        document.getElementById('weather-humid').innerText = `${humidity} %`;
+                        document.getElementById('weather-wind').innerText = `${wind} m/s`;
+                    }
+
+                    if (forecastChart) forecastChart.destroy();
+
+                    var ctx = document.getElementById('forecastChart').getContext('2d');
+                    forecastChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                { label: 'မိုးရေချိန် (mm)', data: rainData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, yAxisID: 'y' },
+                                { label: 'အပူချိန် (°C)', data: tempData, borderColor: '#ef4444', borderDash: [5, 5], tension: 0.4, yAxisID: 'y1' }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { position: 'left', ticks: { font: { size: 10 } }, grid: { display: false } },
+                                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } },
+                                x: { ticks: { font: { size: 10 } } }
+                            }
+                        }
+                    });
+                });
+        }
+
+        function loadCropPrice(cropName) {
+            let searchName = cropName.split('(')[0].trim();
+
+            fetch(`/api/crop_price/${searchName}`)
+                .then(res => res.json())
+                .then(data => {
+                    const priceCard = document.getElementById('price-card');
+
+                    if (data.success) {
+                        priceCard.classList.remove('hidden');
+                        document.getElementById('crop-price-display').innerText = data.price;
+                        document.getElementById('crop-price-unit').innerText = data.unit;
+                        document.getElementById('crop-price-note').innerText = data.note;
+                    } else {
+                        priceCard.classList.add('hidden');
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('price-card').classList.add('hidden');
+                });
+        }
+
+        function loadSoilCrops(soilType) {
+            const card = document.getElementById('soilCropCard');
+            const list = document.getElementById('soilCropList');
+
+            if (!soilType || soilType === 'မသိရပါ') {
+                card.classList.add('hidden');
+                return;
+            }
+
+            card.classList.remove('hidden');
+            list.innerHTML = '<p class="text-xs text-gray-400">Data များ ရယူနေပါသည်...</p>';
+
+            fetch(`/api/get_crops_by_soil/${encodeURIComponent(soilType)}`)
+                .then(res => res.json())
+                .then(data => {
+                    list.innerHTML = '';
+                    if (data.success && data.crops && data.crops.length > 0) {
+                        data.crops.forEach(crop => {
+                            const div = document.createElement('div');
+                            div.className = 'bg-brand-50 border border-brand-200 text-brand-700 text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm flex items-center gap-1';
+                            div.innerHTML = `<span>🌾</span> ${crop.name}`;
+                            list.appendChild(div);
+                        });
+                    } else {
+                        list.innerHTML = '<p class="text-xs text-red-400">ဒီမြေအမျိုးအစားအတွက် အချက်အလက် မရှိပါ။</p>';
+                    }
+                })
+                .catch(() => {
+                    list.innerHTML = '<p class="text-xs text-red-400">Error ဖြစ်သွားပါသည်။</p>';
+                });
+        }
+
+        function openDetailPage() {
+            if (!currentFarmGuide) {
+                alert("စိုက်ပျိုးနည်း အချက်အလက် မရှိပါ။");
+                return;
+            }
+
+            let cropName = currentFarmGuide.crop_name;
+            if (cropName.includes('စပါး') || cropName.includes('Rice')) {
+                window.location.href = '/guide/rice';
+            } else if (cropName.includes('လက်ဖက်') || cropName.includes('Tea')) {
+                window.location.href = '/guide/tea';
+            } else if (cropName.includes('ပြောင်း') || cropName.includes('Corn')) {
+                window.location.href = '/guide/corn';
+            } else if (cropName.includes('ရော်ဘာ') || cropName.includes('Rubber')) {
+                window.location.href = '/guide/rubber';
+            } else if (cropName.includes('ကော်ဖီ') || cropName.includes('Coffee')) {
+                window.location.href = '/guide/coffee';
+            } else if (cropName.includes('မြေပဲ') || cropName.includes('Peanut')) {
+                window.location.href = '/guide/peanut';
+            } else if (cropName.includes('စတော်ဘယ်ရီ') || cropName.includes('Strawberry')) {
+                window.location.href = '/guide/strawberry';
+            } else if (cropName.includes('ပင်စိမ်းသီး') || cropName.includes('Crab Apple')) {
+                window.location.href = '/guide/crab_apple';
+            } else if (cropName.includes('မက်မန်းသီး') || cropName.includes('Damson')) {
+                window.location.href = '/guide/damson';
+            } else if (cropName.includes('ဖရဲသီး') || cropName.includes('Watermelon')) {
+                window.location.href = '/guide/watermelon';
+            } else if (cropName.includes('နာနတ်သီး') || cropName.includes('Pineapple')) {
+                window.location.href = '/guide/pineapple';
+            } else {
+                alert("ဤသီးနှံအတွက် အသေးစိတ် Page မရှိသေးပါ။");
+            }
+        }
+
+        // 💡 နေ့စဉ် စိုက်ပျိုးရေး အကြံပြုချက်များ
+        const farmingTips = [
+            "🌱 မြေဆီလွှာကို စိုစွတ်စေဖို့ ရေကို နည်းနည်းချင်း လောင်းပေးပါ။",
+            "☀️ နေပူပြင်းတဲ့အခါ သီးနှံပင်တွေကို ရေလောင်းတာ ရှောင်ကြဉ်ပါ။",
+            "🌧️ မိုးရွာနိုင်တဲ့အတွက် မြေသြဇာ မထည့်သေးတာ ပိုကောင်းပါတယ်။",
+            "🐛 ပိုးမွှားတွေ မတက်အောင် ပတ်ဝန်းကျင်ကို သန့်ရှင်းအောင် ထားပါ။",
+            "🌾 ရိတ်သိမ်းချိန်မှာ သီးနှံတွေ မှိုမတက်အောင် လေဝင်လေထွက်ကောင်းအောင် ပြုလုပ်ပါ။",
+            "💧 ရေအရည်အသွေးကို ပုံမှန်စစ်ဆေးပြီး ဆားငန်ဓာတ် မများအောင် ဂရုစိုက်ပါ။",
+            "🌿 သီးနှံအကြား အကွာအဝေးကို မှန်ကန်စွာ ထားရှိပါ။",
+            "📈 သီးနှံဈေးနှုန်းတွေကို နေ့စဉ် စောင့်ကြည့်ပြီး အချိန်မှန် ရောင်းချပါ။"
+        ];
+
+        function loadDailyTip() {
+            const today = new Date();
+            const dayIndex = today.getDate() % farmingTips.length;
+
+            const tipText = document.getElementById('daily-tip-text');
+            const tipDate = document.getElementById('daily-tip-date');
+
+            if (tipText && tipDate) {
+                tipText.innerText = farmingTips[dayIndex];
+
+                const monthsMm = ["ဇန်နဝါရီ", "ဖေဖော်ဝါရီ", "မတ်", "ဧပြီ", "မေ", "ဇွန်", "ဇူလိုင်", "ဩဂုတ်", "စက်တင်ဘာ", "အောက်တိုဘာ", "နိုဝင်ဘာ", "ဒီဇင်ဘာ"];
+                tipDate.innerText = `${today.getFullYear()} ခုနှစ်၊ ${monthsMm[today.getMonth()]}လ ${today.getDate()} ရက်`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDailyTip();
+        });
+
+        // 📈 Dashboard အတွက် ဈေးနှုန်း Trend Chart
+        var dashTrendChartInstance = null;
+
+        function loadDashboardTrend(cropName) {
+            if (!cropName) return;
+
+            fetch(`/api/price_history/${cropName}?days=7`)
+                .then(res => res.json())
+                .then(data => {
+                    const ctx = document.getElementById('dashboardTrendChart').getContext('2d');
+
+                    if (dashTrendChartInstance) {
+                        dashTrendChartInstance.destroy();
+                    }
+
+                    if (!data.success || data.data.length === 0) {
+                        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                        return;
+                    }
+
+                    let sortedData = [...data.data].sort((a, b) => new Date(a.recorded_date) - new Date(b.recorded_date));
+                    let labels = sortedData.map(item => item.recorded_date.slice(5));
+                    let minPrices = sortedData.map(item => item.min_price);
+
+                    dashTrendChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'အနည်းဆုံးဈေး',
+                                data: minPrices,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    ticks: { font: { size: 10 } },
+                                    grid: { color: 'rgba(0,0,0,0.05)' }
+                                },
+                                x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+                            }
+                        }
+                    });
+                });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                loadDashboardTrend('Rice');
+            }, 1000);
+        });
+
+        var currentAlerts = [];
+
+        function loadAlerts(farmId) {
+            fetch(`/api/alerts/${farmId}`)
+                .then(res => res.json())
+                .then(data => {
+                    currentAlerts = data.alerts || [];
+                    renderAlerts(data.level, currentAlerts, data.forecast_available);
+                })
+                .catch(() => {
+                    document.getElementById('alertCard').classList.add('hidden');
+                });
+        }
+
+        function renderAlerts(level, alerts, forecastAvailable) {
+            const card = document.getElementById('alertCard');
+            const badge = document.getElementById('alertBadge');
+            const levelBadge = document.getElementById('alertLevelBadge');
+            const list = document.getElementById('alertList');
+            const noAlerts = document.getElementById('noAlerts');
+
+            card.classList.remove('hidden');
+
+            if (alerts.length > 0) {
+                badge.textContent = alerts.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            const levelConfig = {
+                red: { text: 'အန္တရာယ်ရှိ', cls: 'bg-red-100 text-red-700', icon: '🔴' },
+                orange: { text: 'သတိပေးချက်', cls: 'bg-orange-100 text-orange-700', icon: '🟠' },
+                yellow: { text: 'အားနည်းချက်', cls: 'bg-yellow-100 text-yellow-700', icon: '🟡' },
+                green: { text: 'သာယာ', cls: 'bg-green-100 text-green-700', icon: '🟢' }
+            };
+            const cfg = levelConfig[level] || levelConfig.green;
+            levelBadge.textContent = cfg.icon + ' ' + cfg.text;
+            levelBadge.className = 'text-xs px-2 py-1 rounded-md font-bold ' + cfg.cls;
+
+            list.innerHTML = '';
+            if (alerts.length === 0) {
+                noAlerts.classList.remove('hidden');
+                return;
+            }
+            noAlerts.classList.add('hidden');
+
+            alerts.forEach(a => {
+                const sevStyle = {
+                    red: 'border-l-4 border-red-500 bg-red-50',
+                    orange: 'border-l-4 border-orange-500 bg-orange-50',
+                    yellow: 'border-l-4 border-yellow-500 bg-yellow-50'
+                }[a.severity] || 'border-l-4 border-gray-300 bg-gray-50';
+
+                let niceDate = '';
+                if (a.date && a.date.length === 10 && a.date[4] === '-' && a.date[7] === '-') {
+                    niceDate = `${a.date.slice(8, 10)}-${a.date.slice(5, 7)}-${a.date.slice(0, 4)}`;
+                } else if (a.date && a.date.length === 8 && !isNaN(a.date)) {
+                    niceDate = `${a.date.slice(6, 8)}-${a.date.slice(4, 6)}-${a.date.slice(0, 4)}`;
+                }
+
+                const fcTag = (a.title_mm && a.title_mm.includes('ခန့်မှန်း')) || forecastAvailable === false
+                    ? '' : '<span class="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-semibold ml-1">ခန့်မှန်း</span>';
+
+                const div = document.createElement('div');
+                div.className = 'p-3 rounded-lg ' + sevStyle;
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-bold text-sm text-gray-800">${a.icon} ${a.title_mm}${fcTag}</div>
+                            <div class="text-xs text-gray-600 mt-1">${a.message_mm}</div>
+                        </div>
+                        <span class="text-[10px] text-gray-400 whitespace-nowrap ml-2">${niceDate}</span>
+                    </div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleAlertPanel() {
+            const card = document.getElementById('alertCard');
+            card.classList.toggle('hidden');
+        }
+
+        function toggleGuideMenu() {
+            document.getElementById('guideMenu').classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#guideMenu') && !e.target.closest('button[onclick="toggleGuideMenu()"]')) {
+                document.getElementById('guideMenu').classList.add('hidden');
+            }
+        });
+
+        function subscribeEmail() {
+            var email = document.getElementById('subscribeEmail').value.trim();
+            var msg = document.getElementById('subscribeMsg');
+            if (!currentFarmId) {
+                msg.innerText = '❌ အရင် စိုက်ခင်းတစ်ခု ရွေးပါ';
+                msg.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                msg.innerText = '❌ Email မှားယွင်းနေပါသည်';
+                msg.className = 'text-xs mt-1 text-red-500';
+                return;
+            }
+            fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, farm_id: currentFarmId })
+            })
+                .then(r => r.json())
+                .then(d => {
+                    msg.innerText = d.message;
+                    msg.className = 'text-xs mt-1 ' + (d.success ? 'text-green-600' : 'text-red-500');
+                    if (d.success) document.getElementById('subscribeEmail').value = '';
+                });
+        }
+
+        // 🗓️ ရာသီအလိုက် သီးနှံများ
+        let allFarmsForCalendar = [];
+
+        function loadCalendarForMonth(selectedMonth) {
+            if (allFarmsForCalendar.length === 0) {
+                fetch('/api/farms')
+                    .then(res => res.json())
+                    .then(data => {
+                        allFarmsForCalendar = data;
+                        renderCalendarData(selectedMonth);
+                    });
+            } else {
+                renderCalendarData(selectedMonth);
+            }
+        }
+
+        function renderCalendarData(monthInt) {
+            const month = parseInt(monthInt);
+            const MONTH_MAP = { 'january': 1, 'february': 2, 'march': 3, 'april': 4, 'may': 5, 'june': 6, 'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12 };
+            const MONTHS_MM = { 1: 'ဇန်နဝါရီ', 2: 'ဖေဖော်ဝါရီ', 3: 'မတ်', 4: 'ဧပြီ', 5: 'မေ', 6: 'ဇွန်', 7: 'ဇူလိုင်', 8: 'ဩဂုတ်', 9: 'စက်တင်ဘာ', 10: 'အောက်တိုဘာ', 11: 'နိုဝင်ဘာ', 12: 'ဒီဇင်ဘာ' };
+
+            document.getElementById('calendarMonth').innerText = MONTHS_MM[month] + ' လ';
+
+            let plantingList = new Set();
+            let harvestingList = new Set();
+
+            function isMonthInString(str, targetMonth) {
+                if (!str) return false;
+                let s_en = str.replace(/\(.*?\)/g, '').toLowerCase();
+                let m = s_en.match(/([a-z]+)\s*-\s*([a-z]+)/);
+
+                if (m && MONTH_MAP[m[1]] && MONTH_MAP[m[2]]) {
+                    let start = MONTH_MAP[m[1]];
+                    let end = MONTH_MAP[m[2]];
+                    if (start <= end) {
+                        return targetMonth >= start && targetMonth <= end;
+                    } else {
+                        return targetMonth >= start || targetMonth <= end;
+                    }
+                }
+                for (let [name, num] of Object.entries(MONTH_MAP)) {
+                    if (s_en.includes(name) && num === targetMonth) return true;
+                }
+                return false;
+            }
+
+            allFarmsForCalendar.forEach(farm => {
+                let cropEn = farm.current_crop.split('(')[0].trim();
+                let cropMm = farm.current_crop.includes('(') ? farm.current_crop.split('(')[1].replace(')', '').trim() : cropEn;
+                let cropNameDisplay = `${cropMm}`;
+
+                if (isMonthInString(farm.planting_month, month)) {
+                    plantingList.add(cropNameDisplay);
+                }
+                if (isMonthInString(farm.harvest_month, month)) {
+                    harvestingList.add(cropNameDisplay);
+                }
+            });
+
+            let plantingHtml = plantingList.size > 0
+                ? [...plantingList].map(c => `<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-md border border-green-200 font-semibold">🌱 ${c}</span>`).join('')
+                : '<span class="text-gray-400 text-xs">— မရှိပါ —</span>';
+
+            let harvestHtml = harvestingList.size > 0
+                ? [...harvestingList].map(c => `<span class="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded-md border border-amber-200 font-semibold">🌾 ${c}</span>`).join('')
+                : '<span class="text-gray-400 text-xs">— မရှိပါ —</span>';
+
+            document.getElementById('calPlanting').innerHTML = plantingHtml;
+            document.getElementById('calHarvest').innerHTML = harvestHtml;
+
+            // လာမယ့်လအတွက်
+            let nextMonth = month + 1;
+            if (nextMonth > 12) nextMonth = 1;
+
+            let nextPlantingList = new Set();
+            let nextHarvestingList = new Set();
+
+            allFarmsForCalendar.forEach(farm => {
+                let cropEn = farm.current_crop.split('(')[0].trim();
+                let cropMm = farm.current_crop.includes('(') ? farm.current_crop.split('(')[1].replace(')', '').trim() : cropEn;
+                let cropNameDisplay = `${cropMm}`;
+
+                if (isMonthInString(farm.planting_month, nextMonth)) {
+                    nextPlantingList.add(cropNameDisplay);
+                }
+                if (isMonthInString(farm.harvest_month, nextMonth)) {
+                    nextHarvestingList.add(cropNameDisplay);
+                }
+            });
+
+            let nextInfoHtml = '';
+            if (nextPlantingList.size > 0 || nextHarvestingList.size > 0) {
+                nextInfoHtml += `<div class="font-bold mb-1">📅 ${MONTHS_MM[nextMonth]} လ အတွက်</div>`;
+
+                if (nextPlantingList.size > 0) {
+                    nextInfoHtml += `<div class="mb-1"><span class="text-green-600 font-bold">စိုက်ရန် - </span>${[...nextPlantingList].join(', ')}</div>`;
+                }
+                if (nextHarvestingList.size > 0) {
+                    nextInfoHtml += `<div><span class="text-amber-600 font-bold">ရိတ်သိမ်းရန် - </span>${[...nextHarvestingList].join(', ')}</div>`;
+                }
+            } else {
+                nextInfoHtml = `<div class="text-gray-500">လာမယ့်လအတွက် အထူးစိုက်ပျိုးရန် မရှိပါ။</div>`;
+            }
+
+            document.getElementById('nextMonthInfo').innerHTML = nextInfoHtml;
+        }
+
+        function loadDataTables() {
+            fetch('/api/all_villages')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const tbody = document.getElementById('villageTableBody');
+                        tbody.innerHTML = res.data.map((farm, idx) => {
+                            let cropEn = farm.current_crop.split('(')[0].trim();
+                            let cropMm = farm.current_crop.includes('(') ? farm.current_crop.split('(')[1].replace(')', '').trim() : cropEn;
+                            return `
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-2 font-medium text-gray-900">${idx + 1}</td>
+                                <td class="px-4 py-2">${farm.farm_name}</td>
+                                <td class="px-4 py-2"><span class="bg-brand-50 text-brand-700 text-xs px-2 py-1 rounded-md">${cropMm}</span></td>
+                            </tr>
+                            `;
+                        }).join('');
+                    }
+                });
+
+            fetch('/api/all_crops_list')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        const tbody = document.getElementById('cropTableBody');
+                        tbody.innerHTML = res.data.map((crop, idx) => {
+                            return `
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-2 font-medium text-gray-900">${idx + 1}</td>
+                                <td class="px-4 py-2 font-semibold text-brand-700">${crop.mm}</td>
+                                <td class="px-4 py-2 text-gray-500">${crop.en}</td>
+                            </tr>
+                            `;
+                        }).join('');
+                    }
+                });
+        }
+
+        loadDataTables();
+
+        setInterval(function () {
+            if (currentFarmId) loadAlerts(currentFarmId);
+        }, 600000);
+
+        document.getElementById('predictForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const data = {
+                N: parseFloat(document.getElementById('N').value),
+                P: parseFloat(document.getElementById('P').value),
+                K: parseFloat(document.getElementById('K').value),
+                temperature: parseFloat(document.getElementById('temp').value),
+                humidity: parseFloat(document.getElementById('humidity').value),
+                ph: parseFloat(document.getElementById('ph').value),
+                rainfall: parseFloat(document.getElementById('rainfall').value)
+            };
+
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = "Analyzing...";
+            btn.disabled = true;
+
+            fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(result => {
+                    btn.innerHTML = "Analyze Data";
+                    btn.disabled = false;
+
+                    if (result.error) {
+                        document.getElementById('predictionResult').innerHTML = `<div class="bg-red-500/20 border border-red-500 p-2 rounded-lg text-white">Error</div>`;
+                    } else {
+                        let reasons = "";
+                        for (let [key, value] of Object.entries(result.top_features)) {
+                            reasons += `<li class="flex justify-between"><span>${key}</span> <span>${(value * 100).toFixed(1)}%</span></li>`;
+                        }
+
+                        document.getElementById('predictionResult').innerHTML = `
+                        <div class="bg-white text-gray-800 p-4 rounded-xl shadow-inner mt-2">
+                            <div class="text-center mb-2">
+                                <span class="text-xs text-gray-500">သင့်တော်သော သီးနှံ</span>
+                                <div class="text-2xl font-black text-brand-600 uppercase">${result.prediction}</div>
+                            </div>
+                            ${result.top3 ? `<div class="mb-2">${result.top3.map(t => `
+                                <div class="mt-1">
+                                    <div class="flex justify-between text-xs"><span class="capitalize">${t.crop}</span><span class="font-bold">${t.probability}%</span></div>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5"><div class="${t.crop === result.prediction ? 'bg-brand-500' : 'bg-gray-400'} h-1.5 rounded-full" style="width:${t.probability}%"></div></div>
+                                </div>`).join('')}</div>` : ''}
+                            <div class="border-t pt-2 text-xs">
+                                <b>အကြောင်းပြချက် (Feature Impact):</b>
+                                <ul class="mt-1 space-y-1 text-gray-600">${reasons}</ul>
+                            </div>
+                        </div>
+                    `;
+                    }
+                });
+        });
+    </script>
+</body>
+
+</html>

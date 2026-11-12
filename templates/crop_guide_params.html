@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>သီးနှံအလိုက် ရာသီဥတုနှင့် မြေဆီလွှာ လမ်းညွှန် | AgroSmart</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 pb-10">
+
+    <!-- Navbar -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-gray-900 tracking-tight"><i class="fa-solid fa-leaf text-green-400"></i>
+                AgroSmart <span class="text-green-600">KyaingTong</span></span>
+        </div>
+
+        <div class="flex items-center gap-5 text-sm font-semibold text-gray-600">
+            <a href="/" class="hover:text-green-600 transition">ပင်မ</a>
+            <a href="/prices" class="hover:text-green-600 transition">💰 စျေးနှုန်းများ</a>
+            <a href="/chatbot_similarity" class="hover:text-green-600 transition">ဆွေးနွေးခန်း</a>
+
+            <!-- Menu Dropdown -->
+            <div class="relative">
+                <button onclick="toggleGuideMenu()" class="hover:text-green-600 transition flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <i class="fa-solid fa-bars"></i> Menu
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="guideMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 text-sm font-normal z-50">
+                    <a href="/weather" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">🌤️ မိုးလေဝသ</a>
+                    <a href="/news" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">📰 စိုက်ပျိုးရေးသတင်းများ</a>
+                    <a href="/crop_guide_params" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700 font-bold text-green-700">🌱 မြေဆီလွှာ</a>
+                    <a href="/about_kengtung" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">ℹ️ ကျိုင်းတုံအကြောင်း</a>
+                    <a href="/guide" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">❓ အသုံးပြုနည်း</a>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="/admin" class="hover:text-red-600 transition flex items-center gap-1 text-red-600 font-bold ml-2">👑 Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl mx-auto p-6 space-y-8">
+
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-green-700 mb-2">သီးနှံစိုက်ရာတွင်
+                လေ့လာမှတ်သားဖွယ်ကောင်းသော ဗဟုသုတများ</h1>
+            <p class="text-gray-500 text-lg">အောက်ပါ ခလုတ်များကို နှိပ်ပြီး သိရှိလိုသော အကြောင်းအရာများကို
+                လေ့လာနိုင်ပါသည်</p>
+        </div>
+
+        <!-- Tab ခလုတ် (၃) ခု -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8">
+            <button onclick="openTab('soil')" id="btn-soil"
+                class="tab-btn bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-md transition hover:bg-green-700">
+                🌱 မြေအမျိုးအစားနှင့် သီးနှံများ
+            </button>
+            <button onclick="openTab('dropdown')" id="btn-dropdown"
+                class="tab-btn bg-white text-gray-600 border border-gray-300 px-6 py-3 rounded-xl font-bold text-lg shadow-sm transition hover:bg-gray-50">
+                🔍 မြေအလိုက် သီးနှံပုံများ
+            </button>
+            <button onclick="openTab('params')" id="btn-params"
+                class="tab-btn bg-white text-gray-600 border border-gray-300 px-6 py-3 rounded-xl font-bold text-lg shadow-sm transition hover:bg-gray-50">
+                📊 သီးနှံလိုအပ်ချက်များ (N, P, K)
+            </button>
+        </div>
+
+        <!-- 🟢 Tab 1: မြေအမျိုးအစားနှင့် သီးနှံများ (ပုံနဲ့ စာသား) -->
+        <div id="tab-soil" class="tab-content active">
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_meadow.png" alt="Meadow Soil" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Meadow+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">1. မြက်ခင်းနှင့် မြက်ခင်းအနည်ထိုင်မြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Meadow & Meadow Alluvial Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>မြက်ခင်းအနီး ချိုင်းတွင်းနှင့် လွင်ပြင်တွေမှာ တွေ့ရတယ်။</li>
+                            <li><strong class="text-green-700">စပါး၊ ဟင်းသီးဟင်းရွက်နဲ့ ပဲမျိုးစုံ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_gley.png" alt="Gley Soil" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Gley+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">2. ရွံ့ပြာနှင့် ရွံ့ပြာစိမ့်မြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Gley & Gley Swampy Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>ရေဝပ်တတ်တဲ့ မြေအမျိုးအစားဖြစ်တယ်။</li>
+                            <li><strong class="text-green-700">စပါး</strong> စိုက်ပျိုးရန် သင့်တော်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_red_brown.jpg" alt="Red Brown Soil" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Red+Brown+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">3. နီညိုရောင် သစ်တောမြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Red Brown Forest Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>နီညိုရောင်ရှိပြီး တောင်ကုန်းဒေသတွေမှာ တွေ့ရတယ်။</li>
+                            <li><strong class="text-green-700">လက်ဖက်၊ ကော်ဖီနဲ့ သစ်တောပင်တွေ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_yellow_brown.jpg" alt="Yellow Brown Soil" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Yellow+Brown+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">4. ဝါညိုရောင် သစ်တောမြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Yellow Brown Forest Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>ဝါညိုရောင်ရှိတဲ့ သစ်တောမြေဖြစ်တယ်။</li>
+                            <li><strong class="text-green-700">လက်ဖက်၊ ကော်ဖီနဲ့ သစ်တောပင်တွေ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_red_earth.jpg" alt="Red Earth" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Red+Earth'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">5. အနီရောင်နှင့် အဝါရောင်မြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Red Earths & Yellow Earths</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>အနီရောင်နဲ့ အဝါရောင်ရှိတဲ့ မြေဖြစ်တယ်။</li>
+                            <li><strong class="text-green-700">ပြောင်း၊ ပဲပုပ်၊ လက်ဖက်၊ ကော်ဖီနဲ့ စတော်ဘယ်ရီ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_mountain_brown.jpg" alt="Mountain Brown" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Mountain+Brown+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">6. တောင်ပေါ်ဒေသ ညိုရောင်သစ်တောမြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Mountainous Brown Forest Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>တောင်မြင့်ဒေသတွေမှာ တွေ့ရတယ်။</li>
+                            <li><strong class="text-green-700">သစ်တောပင်တွေ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-6 items-center md:items-start hover:shadow-md transition">
+                    <div class="w-full md:w-48 shrink-0">
+                        <img src="/static/images/soil_mountain_red.jpg" alt="Mountain Red" class="w-full h-32 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/300x200/10b981/ffffff?text=Mountain+Red+Soil'">
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">7. တောင်ပေါ်ဒေသ အနီရောင်သစ်တောမြေ</h2>
+                        <p class="text-sm text-gray-500 mb-3 italic">Mountainous Red Forest Soils</p>
+                        <ul class="list-disc pl-5 space-y-2 text-sm text-gray-700">
+                            <li>တောင်ပေါ်ဒေသမှာ တွေ့ရတဲ့ အနီရောင်သစ်တောမြေဖြစ်တယ်။</li>
+                            <li><strong class="text-green-700">သစ်တောပင်နဲ့ နှစ်ရှည်ပင်တွေ</strong> စိုက်ပျိုးနိုင်တယ်။</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🟠 Tab 2: Dropdown နဲ့ သီးနှံပုံများ -->
+        <div id="tab-dropdown" class="tab-content">
+            <div class="bg-white rounded-2xl shadow-md p-6 border-t-4 border-green-500 mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">🌱 မြေအမျိုးအစားအလိုက် သင့်တော်သော
+                    သီးနှံများ ရှာဖွေရန်</h2>
+
+                <div class="flex justify-center mb-4">
+                    <select id="soilSelector" onchange="getRecommendedCrops(this.value)"
+                        class="w-full max-w-lg bg-green-50 border border-green-300 text-green-800 text-lg rounded-lg focus:ring-green-500 focus:border-green-500 block p-3 outline-none font-semibold shadow-sm">
+                        <option value="">-- မြေအမျိုးအစား ရွေးချယ်ပါ --</option>
+                        <option value="Meadow & Meadow Alluvial Soils">မြက်ခင်းနှင့် မြက်ခင်းအနည်ထိုင်မြေ</option>
+                        <option value="Gley & Gley Swampy Soils">ရွံ့ပြာနှင့် ရွံ့ပြာစိမ့်မြေ</option>
+                        <option value="Red Brown Forest Soils">နီညိုရောင် သစ်တောမြေ</option>
+                        <option value="Yellow Brown Forest Soils">ဝါညိုရောင် သစ်တောမြေ</option>
+                        <option value="Red Earths & Yellow Earths">အနီရောင်နှင့် အဝါရောင်မြေ</option>
+                        <option value="Mountainous Brown Forest Soils">တောင်ပေါ်ဒေသ ညိုရောင်သစ်တောမြေ</option>
+                        <option value="Mountainous Red Forest Soils">တောင်ပေါ်ဒေသ အနီရောင်သစ်တောမြေ</option>
+                        <option value="Alluvial">အနည်ထိုင်မြေ</option>
+                        <option value="Lateritic">နီညိုရောင်မြေ (Lateritic)</option>
+                    </select>
+                </div>
+
+                <!-- ရလာတဲ့ ရလဒ်ကို ဒီမှာ ပြမယ် -->
+                <div id="cropResultArea" class="hidden mt-6">
+                    <div class="bg-green-50 rounded-xl p-5 border border-green-100">
+                        <div id="resultContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🔵 Tab 3: သီးနှံ Parameter များ -->
+        <div id="tab-params" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for crop, data in guide_data.items() %}
+                <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg transition">
+                    <div class="bg-green-600 p-4">
+                        <h2 class="text-xl font-bold text-white">{{ crop }}</h2>
+                        <p class="text-green-100 text-sm mt-1">{{ data.desc }}</p>
+                    </div>
+                    <div class="p-5 space-y-3 text-sm">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">🌱 နိုက်ထရိုဂျင် (N)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.N }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">🌱 ဖော့စဖရပ် (P)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.P }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">🌱 ပိုတက်စီယမ် (K)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.K }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">🌡️ အပူချိန် (Temp)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.temp }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">💧 စိုထိုင်းဆ (Humidity)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.humidity }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-bold text-gray-600">🧪 မြေချဉ်ငန်ဓာတ် (pH)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.ph }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-bold text-gray-600">🌧️ မိုးရေချိန် (Rainfall)</span>
+                            <span class="text-green-700 font-semibold text-right w-1/2">{{ data.rainfall }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-300 py-10 mt-auto shrink-0">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-green-600 p-2 rounded-lg text-white">🌾</div>
+                    <h2 class="text-2xl font-bold text-white">AgroSmart <span class="text-green-500">KyaingTong</span></h2>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    ကျိုင်းတုံဒေသရှိ တောင်သူများအတွက် ခေတ်မီနည်းပညာနှင့် ရာသီဥတုအချက်အလက်များကို အခြေခံပြီး စိုက်ပျိုးရေးဆိုင်ရာ အကြံပြုချက်များနှင့် ဈေးကွက်အချက်အလက်များကို ပံ့ပိုးပေးနေသော စနစ်ဖြစ်ပါသည်။
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">အမြန်လင့်ခ်များ</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> ပင်မစာမျက်နှာ</a></li>
+                    <li><a href="/about_kengtung" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> ကျိုင်းတုံအကြောင်း</a></li>
+                    <li><a href="/prices" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> သီးနှံစျေးနှုန်းများ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">ဆက်သွယ်ရန်</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-green-500"></i>
+                        <span>ကျိုင်းတုံမြို့၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်း၊ မြန်မာနိုင်ငံ</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-green-500"></i>
+                        <span>+95 9 123 456 789</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-green-500"></i>
+                        <span>info@agrosmart.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2026 AgroSmart KyaingTong. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Navbar Menu Toggle
+        function toggleGuideMenu() {
+            document.getElementById('guideMenu').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#guideMenu') && !e.target.closest('button[onclick="toggleGuideMenu()"]')) {
+                document.getElementById('guideMenu').classList.add('hidden');
+            }
+        });
+
+        // Tab ပြောင်းတဲ့ Function
+        function openTab(tabName) {
+            var contents = document.querySelectorAll('.tab-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+
+            var buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(function (btn) {
+                btn.classList.remove('bg-green-600', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-600', 'border', 'border-gray-300');
+            });
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            var activeBtn = document.getElementById('btn-' + tabName);
+            activeBtn.classList.remove('bg-white', 'text-gray-600', 'border', 'border-gray-300');
+            activeBtn.classList.add('bg-green-600', 'text-white');
+        }
+
+        // Dropdown ရွေးလိုက်ရင် သီးနှံပုံတွေ ဆွဲထုတ်တဲ့ Function
+        function getRecommendedCrops(soilName) {
+            const resultArea = document.getElementById('cropResultArea');
+            const resultContent = document.getElementById('resultContent');
+
+            if (!soilName) {
+                resultArea.classList.add('hidden');
+                return;
+            }
+
+            resultContent.innerHTML = '<div class="text-center py-4 text-gray-500">⏳ ရှာဖွေနေပါသည်...</div>';
+            resultArea.classList.remove('hidden');
+
+            fetch(`/api/get_crops_by_soil/${encodeURIComponent(soilName)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        let html = `<h4 class="text-lg font-bold text-green-700 mb-3 text-center">🌱 သင့်တော်သော သီးနှံများ</h4>`;
+                        html += `<div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">`;
+                        data.crops.forEach(crop => {
+                            html += `
+                                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition group">
+                                    <div class="h-24 w-full overflow-hidden">
+                                        <img src="/static/images/${crop.image}" alt="${crop.name}" 
+                                             class="w-full h-full object-cover group-hover:scale-110 transition duration-300"
+                                             onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                                    </div>
+                                    <div class="p-2 text-center bg-green-600">
+                                        <span class="font-bold text-white text-sm">${crop.name}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        resultContent.innerHTML = html;
+                    } else {
+                        resultContent.innerHTML = '<div class="text-center py-4 text-red-500">❌ Data မရှိပါ</div>';
+                    }
+                })
+                .catch(err => {
+                    resultContent.innerHTML = '<div class="text-center py-4 text-red-500">❌ Error ဖြစ်သွားပါသည်</div>';
+                });
+        }
+    </script>
+
+</body>
+
+</html>

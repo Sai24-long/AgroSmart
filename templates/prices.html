@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>သီးနှံစျေးနှုန်းများ | AgroSmart</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-card {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* 🔥 Marquee Animation */
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 20s linear infinite;
+        }
+
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animated-bg {
+            background: linear-gradient(-45deg, #10b981, #3b82f6, #f59e0b, #ef4444);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 pb-10">
+
+    <!-- 🔥 အပေါ်ဆုံး ဈေးနှုန်းအပြောင်းအလဲ သတိပေးချက် Marquee Banner 🔥 -->
+    <div class="animated-bg text-white py-2 overflow-hidden shadow-md relative z-[60]">
+        <div class="flex items-center gap-4">
+            <div class="bg-white text-gray-800 px-3 py-1 rounded-md font-bold text-xs whitespace-nowrap shadow-sm ml-4 flex items-center gap-1 z-10">
+                <i class="fa-solid fa-bullhorn text-red-500 animate-pulse"></i> သတိပြုရန်
+            </div>
+            <div class="overflow-hidden w-full relative">
+                <div class="animate-marquee font-semibold text-sm flex items-center gap-2">
+                    <span><i class="fa-solid fa-arrow-trend-up text-yellow-300"></i> ဈေးနှုန်းများသည် နေ့စဉ်အပြောင်းအလဲ ရှိနိုင်ပါသည်။ ကောက်ခံရရှိသည့် ဈေးနှုန်းများကိုသာ အတည်ပြုပါ။</span>
+                    <span class="mx-8">|</span>
+                    <span><i class="fa-solid fa-triangle-exclamation text-yellow-300"></i> ရာသီဥတုနှင့် ထောက်ပံ့မှုအပေါ် မူတည်၍ ရုတ်တရက် ဈေးအတက်အကျ ဖြစ်နိုင်ပါသည်။</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-6 py-3 flex justify-between items-center shadow-sm sticky top-0 z-50 shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="text-xl font-bold text-gray-900 tracking-tight"><i class="fa-solid fa-leaf text-green-400"></i>
+                AgroSmart <span class="text-green-600">KyaingTong</span></span>
+        </div>
+
+        <div class="flex items-center gap-5 text-sm font-semibold text-gray-600">
+            <a href="/" class="hover:text-green-600 transition">ပင်မ</a>
+            <a href="/prices" class="hover:text-green-600 transition font-bold text-emerald-600">💰 စျေးနှုန်းများ</a>
+            <a href="/chatbot_similarity" class="hover:text-green-600 transition">ဆွေးနွေးခန်း</a>
+
+            <!-- Menu Dropdown -->
+            <div class="relative">
+                <button onclick="toggleGuideMenu()" class="hover:text-green-600 transition flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <i class="fa-solid fa-bars"></i> Menu
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div id="guideMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 text-sm font-normal z-50">
+                    <a href="/weather" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">🌤️ မိုးလေဝသ</a>
+                    <a href="/news" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">📰 စိုက်ပျိုးရေးသတင်းများ</a>
+                    <a href="/crop_guide_params" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">🌱 မြေဆီလွှာ</a>
+                    <a href="/about_kengtung" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">ℹ️ ကျိုင်းတုံအကြောင်း</a>
+                    <a href="/guide" class="block px-4 py-2 text-gray-700 hover:bg-green-50 hover:text-green-700">❓ အသုံးပြုနည်း</a>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="/admin" class="hover:text-red-600 transition flex items-center gap-1 text-red-600 font-bold ml-2">👑 Admin</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 mt-8">
+
+        <!-- Header Section -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-3 drop-shadow-sm">ကျိုင်းတုံ ဒေသစျေးကွက်</h1>
+            <p class="text-gray-600 text-lg">လက်ရှိ သီးနှံပေါက်စျေးနှုန်းများကို အချိန်နှင့်တပြေးညီ လေ့လာပါ။</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="mb-10 max-w-lg mx-auto relative group">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-gray-400 group-focus-within:text-green-500 transition"></i>
+            </div>
+            <input type="text" id="searchInput" onkeyup="handleSearch()"
+                placeholder="သီးနှံအမည် ရိုက်ထည့်ပြီး ရှာပါ... (ဥပမာ - စပါး)"
+                class="block w-full pl-11 pr-4 py-4 border border-gray-200 rounded-2xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400 transition shadow-sm hover:shadow-md text-lg">
+        </div>
+
+        <!-- Chart Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+            <!-- ဘယ်ဘက် Chart -->
+            <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-green-600"></i> <span id="trendTitle">နောက်ဆုံး ၇ ရက်စာ</span> ဈေးနှုန်း
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">ဈေးနှုန်းတက်ခြင်း/ကျခြင်း လမ်းကြောင်း</p>
+                <div class="h-72 w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">သီးနှံ ရွေးချယ်ပါ</label>
+                    <select id="trendCropSelect" onchange="loadTrendChart()"
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 text-sm bg-gray-50 font-bold text-gray-700">
+                        <option value="">-- ရွေးပါ --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ညာဘက် Chart -->
+            <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+                <h2 class="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-simple text-blue-600"></i> လာမယ့် ၃ ရက်စာ ခန့်မှန်းချက်
+                </h2>
+                <div class="h-72 w-full">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div class="mt-4 bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-blue-700">
+                    <i class="fa-solid fa-circle-info mr-1"></i>
+                    ခန့်မှန်းချက်များသည် ယခင်ရက်များ၏ ပျမ်းမျှဈေးနှုန်းအပေါ် အခြေခံထားပါသည်။ အမှန်တကယ် ဈေးနှုန်းများ ကွာခြားနိုင်ပါသည်။
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div id="historyTableSection" class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 mb-10 hidden">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-orange-500"></i>
+                <span id="tableCropName">သီးနှံ</span> ၏ နေ့စဉ် ဈေးနှုန်းမှတ်တမ်း
+            </h2>
+            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-gray-200">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-600 sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="px-4 py-3 font-bold border-b">ရက်စွဲ (Date)</th>
+                            <th class="px-4 py-3 font-bold border-b text-right">အနည်းဆုံးဈေး (Min)</th>
+                            <th class="px-4 py-3 font-bold border-b text-right">အများဆုံးဈေး (Max)</th>
+                            <th class="px-4 py-3 font-bold border-b text-center">ပြောင်းလဲမှု</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="text-sm">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Min vs Max Chart -->
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 mb-10">
+            <h2 class="text-xl font-bold text-gray-800 mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-purple-600"></i> သီးနှံအလိုက် စျေးနှုန်းနှိုင်းယှဉ်ချက် (Min vs Max)
+            </h2>
+            <p class="text-xs text-gray-400 mb-4">နောက်ဆုံး မှတ်တမ်းတင်ထားသော ဈေးနှုန်းများ</p>
+            <div class="h-80 w-full">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="priceGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-3 text-center py-10 text-gray-500">
+                <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-green-500"></i>
+                <p>Data များ ရယူနေပါသည်...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-gray-300 py-10 mt-auto shrink-0">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-green-600 p-2 rounded-lg text-white">🌾</div>
+                    <h2 class="text-2xl font-bold text-white">AgroSmart <span class="text-green-500">KyaingTong</span></h2>
+                </div>
+                <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                    ကျိုင်းတုံဒေသရှိ တောင်သူများအတွက် ခေတ်မီနည်းပညာနှင့် ရာသီဥတုအချက်အလက်များကို အခြေခံပြီး စိုက်ပျိုးရေးဆိုင်ရာ အကြံပြုချက်များနှင့် ဈေးကွက်အချက်အလက်များကို ပံ့ပိုးပေးနေသော စနစ်ဖြစ်ပါသည်။
+                </p>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">အမြန်လင့်ခ်များ</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="/" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> ပင်မစာမျက်နှာ</a></li>
+                    <li><a href="/about_kengtung" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> ကျိုင်းတုံအကြောင်း</a></li>
+                    <li><a href="/prices" class="hover:text-green-400 transition flex items-center gap-2"><i class="fa-solid fa-angle-right text-green-500 text-xs"></i> သီးနှံစျေးနှုန်းများ</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white mb-4">ဆက်သွယ်ရန်</h3>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot mt-1 text-green-500"></i>
+                        <span>ကျိုင်းတုံမြို့၊ ရှမ်းပြည်နယ်အရှေ့ပိုင်း၊ မြန်မာနိုင်ငံ</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-green-500"></i>
+                        <span>+95 9 123 456 789</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-green-500"></i>
+                        <span>info@agrosmart.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs text-gray-500">
+            <p>&copy; 2026 AgroSmart KyaingTong. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Navbar Menu Toggle
+        function toggleGuideMenu() {
+            document.getElementById('guideMenu').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#guideMenu') && !e.target.closest('button[onclick="toggleGuideMenu()"]')) {
+                document.getElementById('guideMenu').classList.add('hidden');
+            }
+        });
+
+        // Prices Logic
+        let priceChartInstance = null;
+        let trendChartInstance = null;
+        let forecastChartInstance = null;
+        let allCropsData = [];
+
+        window.onload = function () {
+            loadAllCropPrices();
+        };
+
+        function loadAllCropPrices() {
+            fetch('/api/all_crop_prices')
+                .then(res => res.json())
+                .then(data => {
+                    const grid = document.getElementById('priceGrid');
+                    grid.innerHTML = '';
+
+                    if (data.success && data.data.length > 0) {
+                        allCropsData = data.data;
+                        populateCropDropdown(data.data);
+
+                        const chartLabels = [];
+                        const minPrices = [];
+                        const maxPrices = [];
+
+                        data.data.forEach((item, index) => {
+                            chartLabels.push(item.crop_name_mm);
+                            minPrices.push(item.min_price);
+                            maxPrices.push(item.max_price);
+
+                            const colors = ['from-green-400 to-green-600', 'from-blue-400 to-blue-600', 'from-purple-400 to-purple-600', 'from-orange-400 to-orange-600', 'from-pink-400 to-pink-600'];
+                            const colorClass = colors[index % colors.length];
+
+                            const card = document.createElement('div');
+                            card.className = `crop-card animate-card bg-white rounded-3xl shadow-lg border border-gray-100 p-1 relative overflow-hidden group hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 cursor-pointer`;
+                            card.style.animationDelay = `${index * 0.1}s`;
+                            card.setAttribute('data-name', item.crop_name_mm + ' ' + item.crop_name);
+                            card.setAttribute('data-crop-name', item.crop_name);
+
+                            card.onclick = () => selectCrop(item.crop_name, item.crop_name_mm);
+
+                            let changeBadge = '';
+                            if (item.change !== undefined && item.change !== null) {
+                                if (item.change > 0) {
+                                    changeBadge = `<span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-lg"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +${item.change.toLocaleString()} ကျပ်</span>`;
+                                } else if (item.change < 0) {
+                                    changeBadge = `<span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-lg"><i class="fa-solid fa-arrow-trend-down mr-1"></i> ${item.change.toLocaleString()} ကျပ်</span>`;
+                                } else {
+                                    changeBadge = `<span class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-lg"><i class="fa-solid fa-minus mr-1"></i> ပြောင်းလဲမှုမရှိ</span>`;
+                                }
+                            }
+
+                            card.innerHTML = `
+                                <div class="h-2 w-full rounded-t-3xl bg-gradient-to-r ${colorClass}"></div>
+                                <div class="p-6">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 class="text-2xl font-bold text-gray-800 group-hover:text-green-700 transition">${item.crop_name_mm}</h3>
+                                            <span class="text-xs text-gray-400 font-semibold uppercase tracking-wider">${item.crop_name}</span>
+                                        </div>
+                                        <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform">🌾</div>
+                                    </div>
+                                    ${changeBadge ? `<div class="mb-3">${changeBadge}</div>` : ''}
+                                    <div class="space-y-3 mb-6 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-500 font-semibold flex items-center gap-1"><i class="fa-solid fa-arrow-down text-green-500"></i> အနည်းဆုံး</span>
+                                            <span class="text-lg font-bold text-green-700">${item.min_price.toLocaleString()} <span class="text-xs font-normal">ကျပ်</span></span>
+                                        </div>
+                                        <div class="border-t border-gray-200"></div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-500 font-semibold flex items-center gap-1"><i class="fa-solid fa-arrow-up text-red-500"></i> အများဆုံး</span>
+                                            <span class="text-lg font-bold text-red-600">${item.max_price.toLocaleString()} <span class="text-xs font-normal">ကျပ်</span></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="bg-green-100 text-green-800 font-semibold px-3 py-1.5 rounded-lg border border-green-200"><i class="fa-solid fa-scale-balanced mr-1"></i> ${item.unit}</span>
+                                        <span class="text-gray-400 italic text-right">${item.note || ''}</span>
+                                    </div>
+                                </div>
+                            `;
+                            grid.appendChild(card);
+                        });
+
+                        renderPriceChart(chartLabels, minPrices, maxPrices);
+
+                        if (data.data.length > 0) {
+                            selectCrop(data.data[0].crop_name, data.data[0].crop_name_mm);
+                        }
+
+                    } else {
+                        grid.innerHTML = '<div class="col-span-3 text-center py-10 text-gray-500 text-lg">Data မရှိပါ</div>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('priceGrid').innerHTML = '<div class="col-span-3 text-center py-10 text-red-500 font-bold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Error ဖြစ်သွားပါသည်</div>';
+                });
+        }
+
+        function populateCropDropdown(crops) {
+            const select = document.getElementById('trendCropSelect');
+            select.innerHTML = '<option value="">-- ရွေးပါ --</option>';
+            crops.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.crop_name;
+                opt.textContent = `${item.crop_name_mm} (${item.crop_name})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function selectCrop(cropName, cropNameMm) {
+            document.getElementById('trendCropSelect').value = cropName;
+            document.getElementById('trendTitle').innerText = `နောက်ဆုံး ၇ ရက်စာ (${cropNameMm})`;
+            document.getElementById('tableCropName').innerText = cropNameMm;
+            loadTrendChart();
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('searchInput').value.toLowerCase().trim();
+            const cards = document.getElementsByClassName('crop-card');
+            let firstMatchCrop = null;
+            let firstMatchNameMm = null;
+
+            for (let i = 0; i < cards.length; i++) {
+                const name = cards[i].getAttribute('data-name').toLowerCase();
+                if (name.includes(input)) {
+                    cards[i].style.display = "";
+                    if (!firstMatchCrop && input !== "") {
+                        firstMatchCrop = cards[i].getAttribute('data-crop-name');
+                        firstMatchNameMm = name.split(' ')[0];
+                    }
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+
+            if (firstMatchCrop && input !== "") {
+                fetch('/api/all_crop_prices').then(res => res.json()).then(data => {
+                    const matched = data.data.find(d => d.crop_name === firstMatchCrop);
+                    if (matched) {
+                        selectCrop(matched.crop_name, matched.crop_name_mm);
+                    }
+                });
+            } else if (input === "") {
+                if (allCropsData.length > 0) {
+                    selectCrop(allCropsData[0].crop_name, allCropsData[0].crop_name_mm);
+                }
+            }
+        }
+
+        function loadTrendChart() {
+            const cropName = document.getElementById('trendCropSelect').value;
+            if (!cropName) {
+                if (trendChartInstance) trendChartInstance.destroy();
+                if (forecastChartInstance) forecastChartInstance.destroy();
+                document.getElementById('historyTableSection').classList.add('hidden');
+                return;
+            }
+
+            fetch(`/api/price_history/${cropName}?days=7`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        renderTrendChart(data.data);
+                        renderForecastChart(data.data, cropName);
+                        renderHistoryTable(data.data);
+                        document.getElementById('historyTableSection').classList.remove('hidden');
+                    } else {
+                        if (trendChartInstance) trendChartInstance.destroy();
+                        if (forecastChartInstance) forecastChartInstance.destroy();
+                        document.getElementById('historyTableSection').classList.add('hidden');
+
+                        const trendCtx = document.getElementById('trendChart').getContext('2d');
+                        trendCtx.clearRect(0, 0, trendCtx.canvas.width, trendCtx.canvas.height);
+                        const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+                        forecastCtx.clearRect(0, 0, forecastCtx.canvas.width, forecastCtx.canvas.height);
+                    }
+                })
+                .catch(err => {
+                    console.error('Trend chart error:', err);
+                });
+        }
+
+        function renderHistoryTable(historyData) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+
+            const sorted = [...historyData].sort((a, b) => {
+                const dateA = a.recorded_date || a.updated_at || '';
+                const dateB = b.recorded_date || b.updated_at || '';
+                return new Date(dateB) - new Date(dateA);
+            });
+
+            sorted.forEach((item, index) => {
+                let changeHtml = '<span class="text-gray-400">-</span>';
+
+                if (index < sorted.length - 1) {
+                    const prevMin = sorted[index + 1].min_price;
+                    const diff = item.min_price - prevMin;
+
+                    if (diff > 0) {
+                        changeHtml = `<span class="text-red-500 font-bold bg-red-50 px-2 py-1 rounded"><i class="fa-solid fa-arrow-up"></i> +${diff.toLocaleString()}</span>`;
+                    } else if (diff < 0) {
+                        changeHtml = `<span class="text-green-500 font-bold bg-green-50 px-2 py-1 rounded"><i class="fa-solid fa-arrow-down"></i> ${diff.toLocaleString()}</span>`;
+                    } else {
+                        changeHtml = `<span class="text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded"><i class="fa-solid fa-minus"></i> 0</span>`;
+                    }
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50 transition';
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-semibold text-gray-700">${item.recorded_date}</td>
+                    <td class="px-4 py-3 text-right font-bold text-green-700">${item.min_price.toLocaleString()} ကျပ်</td>
+                    <td class="px-4 py-3 text-right font-bold text-red-600">${item.max_price.toLocaleString()} ကျပ်</td>
+                    <td class="px-4 py-3 text-center">${changeHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTrendChart(historyData) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            const sorted = [...historyData].sort((a, b) => {
+                const dateA = a.recorded_date || a.updated_at || '';
+                const dateB = b.recorded_date || b.updated_at || '';
+                return new Date(dateA) - new Date(dateB);
+            });
+
+            const labels = sorted.map(item => item.recorded_date || (item.updated_at ? item.updated_at.split('T')[0] : ''));
+            const minData = sorted.map(item => item.min_price);
+            const maxData = sorted.map(item => item.max_price);
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'အနည်းဆုံးစျေး (Min)',
+                            data: minData,
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)'
+                        },
+                        {
+                            label: 'အများဆုံးစျေး (Max)',
+                            data: maxData,
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: 'rgba(239, 68, 68, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Padauk', size: 12 }, usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { callbacks: { label: function (context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' ကျပ်'; } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, ticks: { callback: function (value) { return value.toLocaleString(); }, font: { family: 'Padauk', size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { ticks: { font: { family: 'Padauk', size: 10 }, maxRotation: 45, minRotation: 0 }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderForecastChart(historyData, cropName) {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            if (forecastChartInstance) forecastChartInstance.destroy();
+
+            const sorted = [...historyData].sort((a, b) => {
+                const dateA = a.recorded_date || a.updated_at || '';
+                const dateB = b.recorded_date || b.updated_at || '';
+                return new Date(dateA) - new Date(dateB);
+            });
+
+            if (sorted.length < 2) {
+                const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+                forecastCtx.clearRect(0, 0, forecastCtx.canvas.width, forecastCtx.canvas.height);
+                return;
+            }
+
+            const minPrices = sorted.map(item => item.min_price);
+            const maxPrices = sorted.map(item => item.max_price);
+
+            const windowSize = Math.min(3, sorted.length);
+            const recentMin = minPrices.slice(-windowSize);
+            const recentMax = maxPrices.slice(-windowSize);
+
+            const avgMin = recentMin.reduce((a, b) => a + b, 0) / recentMin.length;
+            const avgMax = recentMax.reduce((a, b) => a + b, 0) / recentMax.length;
+
+            const lastDate = new Date(sorted[sorted.length - 1].recorded_date || sorted[sorted.length - 1].updated_at || new Date());
+            const forecastLabels = [];
+            const forecastMin = [];
+            const forecastMax = [];
+
+            for (let i = 1; i <= 3; i++) {
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + i);
+                const yyyy = nextDate.getFullYear();
+                const mm = String(nextDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(nextDate.getDate()).padStart(2, '0');
+                forecastLabels.push(`${yyyy}-${mm}-${dd}`);
+
+                const trendFactor = 1 + (i * 0.01);
+                forecastMin.push(Math.round(avgMin * trendFactor));
+                forecastMax.push(Math.round(avgMax * trendFactor));
+            }
+
+            forecastChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: forecastLabels,
+                    datasets: [
+                        { label: 'ခန့်မှန်း အနည်းဆုံးစျေး', data: forecastMin, backgroundColor: 'rgba(16, 185, 129, 0.7)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1, borderRadius: 6 },
+                        { label: 'ခန့်မှန်း အများဆုံးစျေး', data: forecastMax, backgroundColor: 'rgba(239, 68, 68, 0.7)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1, borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Padauk', size: 12 }, usePointStyle: true, boxWidth: 8 } },
+                        tooltip: { callbacks: { label: function (context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' ကျပ်'; } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: false, ticks: { callback: function (value) { return value.toLocaleString(); }, font: { family: 'Padauk', size: 11 } }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { ticks: { font: { family: 'Padauk', size: 10 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderPriceChart(labels, minData, maxData) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            if (priceChartInstance) priceChartInstance.destroy();
+
+            priceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'အနည်းဆုံးစျေး (Min)', data: minData, backgroundColor: 'rgba(16, 185, 129, 0.8)', borderColor: 'rgba(16, 185, 129, 1)', borderWidth: 1, borderRadius: 4 },
+                        { label: 'အများဆုံးစျေး (Max)', data: maxData, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderColor: 'rgba(239, 68, 68, 1)', borderWidth: 1, borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { font: { family: 'Padauk', size: 14 }, usePointStyle: true, boxWidth: 10 } },
+                        tooltip: { callbacks: { label: function (context) { return context.dataset.label + ': ' + context.parsed.y.toLocaleString() + ' ကျပ်'; } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { callback: function (value) { return value.toLocaleString(); }, font: { family: 'Padauk' } } },
+                        x: { ticks: { font: { family: 'Padauk', size: 12 }, maxRotation: 45, minRotation: 0 } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

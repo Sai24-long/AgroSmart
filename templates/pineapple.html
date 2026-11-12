@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>နာနတ်သီး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ နာနတ်ခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1550985543-f47f38a2c8a6?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #eab308;
+            /* နာနတ်သီးအရောင် (Yellow) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">နာနတ်သီး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple1.jpg') }}" alt="Pineapple Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple2.jpg') }}" alt="Pineapple Fruit"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Fruit'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple3.jpg') }}" alt="Pineapple Suckers"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Suckers'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple4.jpg') }}" alt="Pineapple Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple5.jpg') }}" alt="Pineapple Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple6.jpg') }}" alt="Pineapple Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Harvest'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မြေနေရာနှင့် ရာသီဥတု
+                        ပြင်ဆင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးချိန်:</strong> မိုးဦးကျကာလ (မေ/ဇွန်လ) သည် စိုက်ပျိုးရန် အကောင်းဆုံး
+                            ဖြစ်သည်။</li>
+                        <li><strong>မြေအမျိုးအစား:</strong> ရေဝပ်ခြင်းကို မနှစ်သက်သဖြင့် ရေဝန်းသောက်မှုကောင်းသော မြေပွ၊
+                            နုန်းစိုက်မြေ သို့မဟုတ် သဲဝန်းစပ်မြေနီများတွင် စိုက်ပျိုးသင့်သည်။ မြေ၏ pH အချဉ်အငန်ဓာတ် ၅.၅
+                            မှ ၆.၅ ကြားရှိလျှင် အကောင်းဆုံးဖြစ်သည်။</li>
+                        <li><strong>မြေပြင်ခြင်း:</strong> မြေကို ၁ ပေမှ ၁.၅ ပေအထိ နက်အောင် ထွန်ယက်ပြီး ပေါင်းမြက်များ
+                            ရှင်းလင်းပါ။ မြေဩဇာထက်သန်စေရန် နွားချေးဆွေး သို့မဟုတ် သဘာဝမြေဩဇာများကို မြေပြင်ချိန်တွင်
+                            ရောစပ်ထည့်သွင်းပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - မျိုးစိုက်ပျိုးရန်
+                        ပြင်ဆင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးရွေးချယ်ခြင်း:</strong> နာနတ်သီးကို အသီးထိပ်မှ အညှောက် (Crown)၊ အသီးအောက်ခြေမှ
+                            ထွက်သော တိုင် (Slips) သို့မဟုတ် ပင်ခြေမှထွက်သော အတက် (Suckers) များဖြင့်
+                            စိုက်ပျိုးနိုင်ပါသည်။ ပင်ခြေအတက် (Suckers) နှင့် အသီးခြေတက် (Slips) များကို သုံးပါက
+                            အသီးမြန်မြန်သီးပြီး ဖြစ်ထွန်းမှု ပိုကောင်းသည်။</li>
+                        <li><strong>မျိုးပြင်ဆင်ခြင်း:</strong> စိုက်မည့် အတက်များ၏ အောက်ခြေအရွက်အချို့ကို ခွာထုတ်ပြီး
+                            ပိုးမွှားနှင့် မှိုဒဏ်ခံနိုင်ရည်ရှိစေရန် မှိုသတ်ဆေးဖျန်းထားသော အရိပ်ထဲတွင် ၃ ရက်မှ ၅ ရက်
+                            ခန့်
+                            အနာခြောက်အောင် သေချာ ထားပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - စိုက်ပျိုးနည်းနှင့်
+                        အကွာအဝေး</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ကျင်း ပမာဏ:</strong> အနက် ၆ လက်မ x အကျယ် ၆ လက်မခန့် တူးပါ။</li>
+                        <li><strong>စိုက်ကွက် အကွာအဝေး:</strong> တန်းကြား ၂ ပေ မှ ၂.၅ ပေ၊ ပင်ကြား ၁.၅ ပေ မှ ၂ ပေ ထားပါ။
+                        </li>
+                        <li><strong>စိုက်ပျိုးပုံ:</strong> စိုက်ကျင်းထဲသို့ သဘာဝမြေဩဇာ ရောစပ်ထားသော မြေထည့်ပြီး
+                            ပင်ခြေကို သေချာဖိပေးပါ။ ရေမဝပ်စေရန် အပင်ခြေကို မြေဖို့ပေးထားရပါမည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - အပင်ပြုစုထိန်းသိမ်းခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေသွင်းခြင်း:</strong> နာနတ်သီးသည် ဒဏ်ခံနိုင်သော သီးနှံဖြစ်သော်လည်း အပင်ငယ်စဉ်နှင့်
+                            အသီးဥချိန်များတွင် လုံလောက်သော အစိုဓာတ်လိုအပ်သည်။ မိုးကုန်လျှင် ၇ ရက်မှ ၁၀ ရက်တစ်ကြိမ်
+                            ရေသွင်းပေးပါ။</li>
+                        <li><strong>မြေဩဇာ ကျွေးခြင်း:</strong> စိုက်ပြီး ၃ လ/၆ လတွင် နိုက်ထရိုဂျင် (N) နှင့်
+                            ပိုတက်ဆီယမ် (K) ပါဝင်သော ဓာတ်မြေဩဇာများ သို့မဟုတ် သဘာဝမြေဆွေးကို ပင်ခြေတွင် တူးဆွ၍
+                            ထည့်ပေးပါ။</li>
+                        <li><strong>ပေါင်းမြက်ရှင်းခြင်း:</strong> အပင်ငယ်စဉ်တွင် ပေါင်းမြက်များနှင့် အာဟာရလုယူမှု
+                            မရှိစေရန် ပေါင်းမြက်ကို ပုံမှန်ရှင်းပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - အသီးခူးဆွတ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပြီး ကြာချိန်:</strong> မျိုးတက် (Suckers) စိုက်ပါက ၁၂ လ မှ ၁၈ လ အတွင်း အသီး
+                            စတင်ခူးဆွတ်နိုင်ပါသည်။</li>
+                        <li><strong>ခူးဆွတ်ရန် အချိန်:</strong> အသီးအောက်ခြေမှစ၍ အဝါရောင် ၁/၃ ပုံခန့် ပြောင်းလာပါက
+                            ခူးဆွတ်ရန် သင့်တော်သော အချိန်ဖြစ်သည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Pineapple
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple1.jpg') }}" alt="Pineapple Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple2.jpg') }}" alt="Pineapple Fruit"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Fruit'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple3.jpg') }}" alt="Pineapple Suckers"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Suckers'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple4.jpg') }}" alt="Pineapple Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple5.jpg') }}" alt="Pineapple Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple6.jpg') }}" alt="Pineapple Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Site and Climate Preparation
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Planting Time:</strong> Early monsoon (May/June) is the best time for planting.</li>
+                        <li><strong>Soil Type:</strong> Pineapples dislike waterlogging. Plant in well-drained loose
+                            soil, loamy soil, or sandy loam red soils. Ideal soil pH is between 5.5 and 6.5.</li>
+                        <li><strong>Land Preparation:</strong> Plow the soil to a depth of 1 to 1.5 feet and clear
+                            weeds. Mix well-rotted cow manure or organic fertilizers into the soil during preparation to
+                            enhance fertility.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Preparing Planting Material
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Selecting Material:</strong> Pineapples can be propagated using the crown from the
+                            top of the fruit, slips from the base, or suckers from the base of the plant. Using suckers
+                            and slips results in faster fruiting and better yields.</li>
+                        <li><strong>Preparation:</strong> Remove some lower leaves from the planting material and treat
+                            them with a fungicide. Leave them in a shaded area for 3 to 5 days to allow the wounds to
+                            dry before planting.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Planting Method and Spacing
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Hole Size:</strong> Dig holes about 6 inches deep and 6 inches wide.</li>
+                        <li><strong>Spacing:</strong> Maintain 2 to 2.5 feet between rows and 1.5 to 2 feet between
+                            plants.</li>
+                        <li><strong>Planting:</strong> Fill the hole with soil mixed with organic fertilizer and firmly
+                            press the base of the plant. Mound soil around the base to prevent waterlogging.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Crop Maintenance</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Irrigation:</strong> Though drought-tolerant, pineapples need adequate moisture
+                            during early growth and fruit set. Irrigate every 7 to 10 days after the rainy season ends.
+                        </li>
+                        <li><strong>Fertilization:</strong> At 3 and 6 months after planting, apply fertilizers
+                            containing Nitrogen (N) and Potassium (K), or organic compost, by digging around the base of
+                            the plant.</li>
+                        <li><strong>Weed Control:</strong> Regularly remove weeds during early growth to prevent them
+                            from competing for nutrients.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Time to Harvest:</strong> If planted with suckers, fruits can be harvested within 12
+                            to 18 months.</li>
+                        <li><strong>Harvesting Time:</strong> It is ready to harvest when the lower third of the fruit
+                            changes to a yellow color.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกสับปะรด</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple1.jpg') }}" alt="Pineapple Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple2.jpg') }}" alt="Pineapple Fruit"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Fruit'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple3.jpg') }}" alt="Pineapple Suckers"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Suckers'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple4.jpg') }}" alt="Pineapple Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple5.jpg') }}" alt="Pineapple Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple6.jpg') }}" alt="Pineapple Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1:
+                        การเตรียมพื้นที่และสภาพอากาศ</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>เวลาปลูก:</strong> ต้นฤดูฝน (พฤษภาคม/มิถุนายน) เป็นเวลาที่ดีที่สุดในการปลูก</li>
+                        <li><strong>ประเภทดิน:</strong> สับปะรดไม่ชอบน้ำท่วมขัง ควรปลูกในดินร่วนระบายน้ำดี ดินร่วน
+                            หรือดินร่วนปนทราย ค่า pH ของดินที่เหมาะสมอยู่ระหว่าง 5.5 ถึง 6.5</li>
+                        <li><strong>การเตรียมดิน:</strong> ไถดินให้ลึก 1 ถึง 1.5 ฟุต และกำจัดวัชพืช
+                            ผสมมูลวัวที่ย่อยสลายแล้วหรือปุ๋ยอินทรีย์ลงในดินระหว่างการเตรียมเพื่อเพิ่มความอุดมสมบูรณ์
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: การเตรียมวัสดุปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือกวัสดุ:</strong> สับปะรดสามารถขยายพันธุ์ได้โดยใช้จุกจากยอดผล หน่อจากฐาน
+                            หรือหน่อจากฐานต้น การใช้หน่อและหน่อจะให้ผลเร็วและผลผลิตดีกว่า</li>
+                        <li><strong>การเตรียม:</strong> ลอกใบล่างออกจากวัสดุปลูกและฉีดพ่นด้วยสารฆ่าเชื้อรา
+                            ทิ้งไว้ในที่ร่ม 3 ถึง 5 วันเพื่อให้แผลแห้งก่อนปลูก</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: วิธีการปลูกและระยะปลูก
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ขนาดหลุม:</strong> ขุดหลุมลึกประมาณ 6 นิ้ว กว้าง 6 นิ้ว</li>
+                        <li><strong>ระยะปลูก:</strong> เว้นระยะระหว่างแถว 2 ถึง 2.5 ฟุต และระหว่างต้น 1.5 ถึง 2 ฟุต</li>
+                        <li><strong>การปลูก:</strong> เติมหลุมด้วยดินผสมปุ๋ยอินทรีย์และกดโคนต้นให้แน่น
+                            ทำเนินดินรอบโคนเพื่อป้องกันน้ำท่วมขัง</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การดูแลรักษา</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การให้น้ำ:</strong> แม้จะทนแล้งได้
+                            แต่สับปะรดต้องการความชื้นเพียงพอในช่วงการเจริญเติบโต初期และติดผล ให้น้ำทุก 7 ถึง 10
+                            วันหลังจากฤดูฝนสิ้นสุดลง</li>
+                        <li><strong>การใส่ปุ๋ย:</strong> ที่ 3 และ 6 เดือนหลังปลูก ให้ใส่ปุ๋ยที่มีไนโตรเจน (N)
+                            และโพแทสเซียม (K) หรือปุ๋ยหมักอินทรีย์โดยขุดรอบโคนต้น</li>
+                        <li><strong>การกำจัดวัชพืช:</strong>
+                            กำจัดวัชพืชเป็นประจำในช่วงการเจริญเติบโต初期เพื่อป้องกันการแย่งสารอาหาร</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>เวลาที่ใช้:</strong> หากปลูกด้วยหน่อ จะสามารถเก็บเกี่ยวผลได้ภายใน 12 ถึง 18 เดือน
+                        </li>
+                        <li><strong>เวลาเก็บเกี่ยว:</strong> พร้อมเก็บเกี่ยวเมื่อผลส่วนล่างหนึ่งในสามเปลี่ยนเป็นสีเหลือง
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">菠萝种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple1.jpg') }}" alt="Pineapple Field"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Field'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple2.jpg') }}" alt="Pineapple Fruit"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Fruit'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple3.jpg') }}" alt="Pineapple Suckers"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Suckers'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple4.jpg') }}" alt="Pineapple Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple5.jpg') }}" alt="Pineapple Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/pineapple6.jpg') }}" alt="Pineapple Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/eab308/ffffff?text=Pineapple+Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：场地与气候准备</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>种植时间：</strong>早季风期（5月/6月）是种植的最佳时间。</li>
+                        <li><strong>土壤类型：</strong>菠萝不喜欢积水。应种植在排水良好的疏松土壤、壤土或沙壤红壤中。理想的土壤pH值在5.5到6.5之间。</li>
+                        <li><strong>整地：</strong>将土壤深耕1到1.5英尺，清除杂草。在整地时混入腐熟的牛粪或有机肥以提高肥力。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：准备种植材料</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>选择材料：</strong>菠萝可以通过果实顶部的冠芽、基部的吸芽或植株基部的蘖芽进行繁殖。使用吸芽和蘖芽结果更快，产量更好。</li>
+                        <li><strong>准备：</strong>从种植材料上剥去一些下部叶片，并喷洒杀菌剂。在阴凉处放置3到5天，让伤口干燥后再种植。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：种植方法与间距</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>穴的大小：</strong>挖约6英寸深、6英寸宽的穴。</li>
+                        <li><strong>株行距：</strong>行距保持2到2.5英尺，株距1.5到2英尺。</li>
+                        <li><strong>种植：</strong>在穴中填入混合有机肥的土壤，并用力压实植株基部。在基部堆土以防止积水。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：作物维护</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>灌溉：</strong>虽然耐旱，但菠萝在早期生长和坐果期需要充足的水分。雨季结束后每7到10天灌溉一次。</li>
+                        <li><strong>施肥：</strong>种植后3个月和6个月时，在植株基部周围挖坑，施用含氮（N）和钾（K）的肥料或有机堆肥。</li>
+                        <li><strong>杂草控制：</strong>在早期生长期间定期清除杂草，防止它们争夺养分。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：收获</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>收获时间：</strong>如果用吸芽种植，果实可在12到18个月内收获。</li>
+                        <li><strong>采收时机：</strong>当果实下三分之一变成黄色时即可采收。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/pineapple')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroBot </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+        }
+
+        /* 🎨 နောက်ခံပုံနှင့် Glassmorphism ပြင်ဆင်ချက် */
+        .bg-image-layer {
+            background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1920&auto=format&fit=crop') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
+        }
+
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 🎨 Custom Scrollbar Design */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            /* မီးခိုးရောင် ဖျော့ဖျော့ */
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(16, 185, 129, 0.8);
+            /* Hover လုပ်ရင် အစိမ်းရောင် (Brand Color) */
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col relative overflow-hidden">
+
+    <!-- 🖼️ နောက်ခံပုံ Layer -->
+    <div class="fixed inset-0 -z-20 bg-image-layer"></div>
+    <!-- အရောင်ဖျော့အုပ်ထားတဲ့ Layer (စာသားတွေ ဖတ်ရလွယ်အောင်) -->
+    <div class="fixed inset-0 -z-10 bg-black/30 backdrop-blur-sm"></div>
+
+    <!-- Navbar -->
+    <div class="glass-panel text-gray-800 p-4 shadow-md flex justify-between items-center z-10">
+        <div class="font-bold text-xl text-blue-700">🌾 AgroBot</div>
+        <div class="flex items-center gap-4 text-sm">
+            {% if session.get('user_id') %}
+            <!-- Login ဝင်ထားရင် နာမည်နဲ့ Logout ခလုတ် ပြမယ် -->
+            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded font-semibold border border-blue-200">👤 {{
+                session.get('username') }}</span>
+            <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">Logout</a>
+            {% else %}
+            <!-- Login မဝင်ထားရင် Guest Mode ပြမယ် -->
+            <span class="text-gray-600 font-semibold">Guest Mode</span>
+            <a href="/login"
+                class="bg-blue-600 text-white font-semibold px-4 py-1.5 rounded-lg transition hover:bg-blue-700 shadow-md">Login
+                / Sign
+                Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4  w-full z-10">
+        <!-- Chat တွေ ဒီမှာ ပေါ်လာမယ် -->
+    </div>
+
+    <!-- Input Area -->
+    <div class="glass-panel p-4 shadow-lg border-t border-white/50 z-10">
+
+        <div class="max-w-3xl mx-auto flex flex-wrap gap-2 mb-3 justify-center">
+            <button onclick="setQuestion('စပါးအကြောင်း ပြောပြပါ')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition">🌾
+                စပါးအကြောင်း</button>
+            <button onclick="setQuestion('မြေသြဇာ ဘယ်လိုကျွေးရမလဲ')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition">🌱
+                မြေသြဇာ</button>
+            <button onclick="setQuestion('ပိုးမွှားကျရင် ဘာလုပ်ရမလဲ')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition">🐛
+                ပိုးမွှား</button>
+            <button onclick="setQuestion('ရာသီဥတုနဲ့ ပတ်သက်ပြီး ဘာလုပ်ရမလဲ')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition">🌤️
+                ရာသီဥတု</button>
+            <button onclick="setQuestion('ကော်ဖီ စိုက်ပျိုးနည်း')"
+                class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition">☕
+                ကော်ဖီ</button>
+        </div>
+
+        <div class="max-w-3xl mx-auto flex gap-2">
+            <input type="text" id="user-input" placeholder="မေးခွန်းရိုက်ထည့်ပါ..."
+                class="flex-1 bg-white/90 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition placeholder-gray-500"
+                onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" id="send-btn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
+                ပို့မည်
+            </button>
+        </div>
+        <div class="text-center mt-3">
+            <a href="/" class="text-sm text-blue-700 hover:underline font-semibold bg-white/50 px-3 py-1 rounded-full">⬅
+                ပင်မစာမျက်နှာ သို့ ပြန်သွားရန်</a>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Page စတင်ဖွင့်တာနဲ့ အလုပ်လုပ်မယ့် Function
+        window.onload = function () {
+            // Login ဝင်ထားမှသာ Chat History ကို Database ကနေ ဆွဲထုတ်မယ်
+            {% if session.get('user_id') %}
+            fetch('/api/get_chat_history')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.history && data.history.length > 0) {
+                        data.history.forEach(chat => {
+                            addMessage(chat.user_message, true);
+                            addMessage(chat.bot_response, false);
+                        });
+                    } else {
+                        // မှတ်တမ်း မရှိသေးရင် နှုတ်ဆက်စကား ပြမယ်
+                        addMessage("မင်္ဂလာပါ။ ကျွန်တော်က စိုက်ပျိုးရေးဆိုင်ရာ အချက်အလက်တွေကို ရှာဖွေပေးမယ့် Bot ပါ။", false);
+                    }
+                })
+                .catch(() => {
+                    addMessage("မင်္ဂလာပါ။ ကျွန်တော်က စိုက်ပျိုးရေးဆိုင်ရာ အချက်အလက်တွေကို ရှာဖွေပေးမယ့် Bot ပါ။", false);
+                });
+            {% else %}
+            // Guest Mode အတွက် နှုတ်ဆက်စကား
+            addMessage("မင်္ဂလာပါ။ ကျွန်တော်က စိုက်ပျိုးရေးဆိုင်ရာ အချက်အလက်တွေကို ရှာဖွေပေးမယ့် Bot ပါ။ (Guest Mode ဖြစ်နေလို့ Chat မှတ်တမ်း သိမ်းဆည်းမှာ မဟုတ်ပါဘူး)", false);
+            {% endif %}
+        };
+
+        function addMessage(text, isUser) {
+            const div = document.createElement('div');
+            div.className = `flex items-start gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
+
+            // Avatar ဒီဇိုင်း
+            const avatar = isUser
+                ? `<div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-full w-9 h-9 flex items-center justify-center font-bold shadow-md shrink-0">U</div>`
+                : `<div class="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-full w-9 h-9 flex items-center justify-center font-bold shadow-md shrink-0">A</div>`;
+
+            // Chat Bubble ဒီဇိုင်း
+            const bubble = isUser
+                ? `bg-blue-600 text-white rounded-2xl rounded-tr-sm p-3 shadow-md max-w-[80%]`
+                : `glass-panel text-gray-800 rounded-2xl rounded-tl-sm p-3 shadow-md max-w-[80%]`;
+
+            div.innerHTML = `
+                ${avatar}
+                <div class="${bubble} text-[15px] leading-relaxed">${text.replace(/\n/g, '<br>')}</div>
+            `;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            sendBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            sendBtn.disabled = true;
+
+            fetch('/api/chat_similarity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.error) {
+                        addMessage('❌ Error ဖြစ်သွားပါတယ်။', false);
+                    } else {
+                        addMessage(data.reply, false);
+                    }
+                })
+                .catch(() => addMessage('❌ အင်တာနက် ချိတ်ဆက်မှု မကောင်းပါ။', false))
+                .finally(() => {
+                    sendBtn.innerText = "ပို့မည်";
+                    sendBtn.disabled = false;
+                });
+        }
+
+        // 👇 Hint Button နှိပ်ရင် အလုပ်လုပ်မယ့် Function 👇
+        function setQuestion(text) {
+            document.getElementById('user-input').value = text;
+            sendMessage(); // တိုက်ရိုက် ပို့သွားအောင် ခေါ်မယ်
+        }
+    </script>
+</body>
+
+</html>

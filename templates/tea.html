@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>လက်ဖက် စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ လက်ဖက်ခြံပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1582793988951-9aed5509eb97?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #10b981;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">လက်ဖက် စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea1.jpg') }}" alt="Tea Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea2.jpg') }}" alt="Tea Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea3.jpg') }}" alt="Tea Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea4.jpg') }}" alt="Tea Harvesting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Harvesting'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မူရင်းဒေသနှင့် မျိုးများ
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မူရင်းဒေသ:</strong> မြန်မာပြည်မြောက်ပိုင်း ဧရာဝတီဖြစ်ဖျားခံရာဒေသ၊ တရုတ်ပြည် နှင့်
+                            ဂျပန်ပြည်တို့ဖြစ်သည်။</li>
+                        <li><strong>မျိုးများ:</strong> တရုတ်လက်ဖက် (ရှမ်းပြည်နယ်တွင် စိုက်ပျိုး၊ အပင်ပု၊ အရွက်သေး)၊
+                            အာသံလက်ဖက် (အမြင့် ၃၀-၄၅ လက်မ၊ အရွက်ကြီး၊ ရွက်ကြောထင်ရှား) နှင့် အင်ဒိုချိုင်းနားလက်ဖက်
+                            (အရွက်ထူ၊ အဝါ သို့မဟုတ် အစိမ်းပျော့ရောင်) တို့ဖြစ်သည်။</li>
+                        <li><strong>စိုက်ပျိုးသည့်ဒေသများ:</strong> ရှမ်းပြည်နယ် (ကျောက်မဲ၊ နမ့်စန်၊ ပင်လောင်း၊ ပင်းတယ၊
+                            မိုင်းကိုင်၊ မိုင်းရှူး) အပြင် ကချင်၊ ကရင် နှင့် ချင်းပြည်နယ်တို့တွင် အနည်းငယ်
+                            စိုက်ပျိုးသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - ရေမြေ ရာသီဥတုနှင့်
+                        မြေပြုပြင်နည်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရာသီဥတု:</strong> ပင်လယ်ရေမျက်နှာပြင်မှ အမြင့်ပေ ၄,၀၀၀ မှ ၆,၀၀၀ ကျော်၊ မိုးရေချိန်
+                            ၆၅ မှ ၈၅ လက်မ၊ အပူချိန် ပျမ်းမျှ ၈၅°F၊ မြေချဉ်ငန်ဓာတ် (၄.၅ မှ ၆) ရှိပြီး ရေမဝပ်သည့်
+                            တောင်ပေါ်မြေနီများကို နှစ်သက်သည်။</li>
+                        <li><strong>မြေပြုပြင်နည်း:</strong> ဒီဇင်ဘာလတွင် သစ်တောများခုတ်ထွင်ရှင်းလင်းပြီး မတ်လတွင်
+                            မီးရှို့ပါ။ တစ်တန်းနှင့်တစ်တန်း ၅ ပေအကွာ ပန္နက်ရိုက်ပါ။ ၁၂ လက်မအကျယ်၊ ၁၈ လက်မအနက်ရှိ
+                            ကျင်းများတူးပြီး နွားချေး၊ မြေဆွေးများ ရောစပ်ဖြည့်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - ပျိုးထောင် မျိုးပွားခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးစေ့မှ ပျိုးထောင်ခြင်း:</strong> ဆွတ်ခူးပြီး တစ်ပတ်အတွင်း ပျိုးပါ။
+                            သဲမြေထည့်ထားသော ပျိုးဘောင်တွင် ၁ လက်မအကွာ မျိုးစေ့ချပါ။ သဲမြေဖြင့်ဖုံး၍ ကောက်ရိုးဖြင့်
+                            အုပ်ပြီး ရေလောင်းပေးပါ။ အရိပ်ပြုလုပ်ပေးရန် လိုအပ်သည်။ ပေါက်လာပါက ပလတ်စတစ်အိတ်သို့
+                            ရွှေ့ပြောင်းပါ။</li>
+                        <li><strong>ပင်ပိုင်းဆိုင်ရာ မျိုးပွားခြင်း:</strong> အထွက်ကောင်းသော အပင်ကို ရွေးကာ ၆ လကြိုတင်၍
+                            ကိုင်းဖြတ်ပါ။ သန်မာသော ကိုင်းသစ်များထွက်လာပါက အဆစ်အောက်ကပ်လျက် စောင်းဖြတ်ပြီး အဆစ်အထက်
+                            လက်မဝက်အမြင့်တွင် အတည့်ဖြတ်ကာ မြေဆွေးအိတ်တွင် ပျိုးပါ။ အပင် ၁၀ လက်မရှိလျှင် စိုက်ခင်းသို့
+                            ရွှေ့နိုင်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - စိုက်ပျိုးခြင်းနှင့်
+                        မြေသြဇာကျွေးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးခြင်း:</strong> ပျိုးပင် ၁ နှစ်မှ ၂ နှစ်သားအရွယ် မေ၊ ဇွန်လများတွင်
+                            ရွှေ့ပြောင်းစိုက်ပျိုးနိုင်သည်။ တောင်စောင်းများတွင် စိုက်ပါက ၄ ပေ × ၂ ပေ ကွန်တို
+                            စိုက်တန်းဖော်ပြီး ကျင်း ၁.၅ ပေ တူးကာ စိုက်ပါ။</li>
+                        <li><strong>မြေသြဇာကျွေးခြင်း:</strong> စိုက်ပြီး ၄၅ ရက်အတွင်း အမြစ်စွဲပါက
+                            မြေသြဇာစကျွေးနိုင်သည်။ နိုက်ထရိုဂျင် အဓိကလိုအပ်သဖြင့် တစ်ဧကလျှင် ယူရီးယား ၁၁၂ ပေါင်နှုန်း
+                            နှစ်စဉ်ထည့်ပေးသင့်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - အပင်ပြုစုစောင့်ရှောက်ခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ကိုင်းဖြတ်ခြင်း:</strong> မိုးဦးနှင့် မိုးလယ်တွင် ဆောင်ရွက်သင့်သည်။ အပင်အမြင့် ၂
+                            ပေခန့်တွင် သန်မာသော ဘေးကိုင်း ၂ ကိုင်းချန်ပြီး ကျန်ကိုင်းများကို ၄၅ ဒီဂရီ စောင်း၍
+                            ဖြတ်ပစ်ရမည်။ ပေ ၄,၀၀၀ အောက် မြေနိမ့်ဒေသများတွင် ၃ နှစ်တစ်ကြိမ် ကိုင်းဖြတ်သင့်သည်။
+                            (အပင်နုပျိုစေရန်၊ ရွက်နုပိုထွက်စေရန်၊ အထွက်တိုးစေရန် အကျိုးရှိသည်)။</li>
+                        <li><strong>ဆီးနှင်းကာကွယ်ခြင်း:</strong> လက်ဖက်သည် ၃ နှစ်သားအထိ ဆီးနှင်းဒဏ် မခံနိုင်သဖြင့်
+                            ဍရင်ကောက်ပင်၊ မြက်ခြောက်၊ ကောက်ရိုးခြောက်တို့ဖြင့် မိုးအုပ်ပေးရပါမည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) - ရောဂါပိုးမွှားနှင့်
+                        အရွက်ခူးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပိုးမွှားရောဂါ:</strong> ရွက်စားပိုးနှင့် ပင့်ကူနီများ ကျတတ်ပါသည်။ ရောဂါများ
+                            အကြီးအကျယ် ကျရောက်လေ့မရှိပါ။</li>
+                        <li><strong>အရွက်ခူးခြင်း:</strong> ၃ နှစ်သားအပင်များမှသာ စတင်ခူးသင့်သည်။ ပြုစုမှုနည်းပါက ၁၅
+                            ရက်တစ်ကြိမ် ခူးနိုင်သည်။ မြေပြင်မှ ၂ ပေခွဲအတွင်း အရွက်များကို မခူးရပါ။ အတက်သစ်ကို ၆-၈
+                            လက်မအထိ ချိန်ပေးရမည်။ အပင်အတွင်းပိုင်းနှင့် ဘေးအကိုင်းမှ အစို့သစ်များကို မခူးသင့်ပါ။</li>
+                        <li><strong>အထွက်နှုန်း:</strong> စိုက်ပျိုးနည်းစနစ်နှင့် ခူးသည့်စနစ်ပေါ်မူတည်၍ တစ်ဧကလျှင်
+                            လက်ဖက်ခြောက် ပိဿာ ၁၂၀ မှ ၂၄၀ အထိ ထွက်နိုင်သည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Tea
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea1.jpg') }}" alt="Tea Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea2.jpg') }}" alt="Tea Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea3.jpg') }}" alt="Tea Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea4.jpg') }}" alt="Tea Harvesting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Origin and Varieties</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Origin:</strong> Native to the northern Myanmar (Irrawaddy source), China, and
+                            Japan.</li>
+                        <li><strong>Varieties:</strong> China tea (grown in Shan State, dwarf plant, small leaves),
+                            Assam tea (height 30-45 inches, large leaves, prominent veins), and Indochina tea (thick
+                            leaves, yellowish or light green).</li>
+                        <li><strong>Growing Regions:</strong> Shan State (Kyaukme, Namhsan, Pinlaung, Pindaya,
+                            Mongkaing, Mong Hsu), with minor cultivation in Kachin, Kayah, and Chin States.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Climate, Soil, and Land
+                        Preparation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Climate:</strong> Altitude 4,000-6,000 ft, rainfall 65-85 inches, avg temp 85°F,
+                            soil pH 4.5-6. Prefers well-drained red upland soil.</li>
+                        <li><strong>Land Preparation:</strong> Clear forests in December and burn in March. Peg at 5 ft
+                            x 5 ft spacing. Dig pits 12 inches wide and 18 inches deep, filling with a mix of cow manure
+                            and topsoil.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Nursery and Propagation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Seed Propagation:</strong> Sow seeds within a week of harvesting. Place seeds 1 inch
+                            apart in sandy beds. Cover with sand and mulch, water well, and provide shade. Transplant to
+                            polybags when seedlings emerge.</li>
+                        <li><strong>Vegetative Propagation:</strong> Select high-yielding mother plants and prune 6
+                            months prior. Take semi-hardwood cuttings, make a slanted cut below the node and a straight
+                            cut above. Plant in compost-filled bags. Transplant when 10 inches tall.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Planting and Fertilization
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Planting:</strong> Transplant 1-2 year old seedlings in May-June. On slopes, prepare
+                            contour rows at 4 ft x 2 ft. Dig pits 1.5 ft deep.</li>
+                        <li><strong>Fertilization:</strong> Apply fertilizer 45 days after planting once roots
+                            establish. Tea requires high nitrogen; apply 112 lbs of Urea per acre annually.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Plant Maintenance</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pruning:</strong> Perform in early and mid-monsoon. At about 2 ft height, retain 2
+                            strong lateral branches and cut others at a 45-degree angle. Below 4,000 ft, prune every 3
+                            years. (Benefits: rejuvenates plants, boosts tender leaf yield, maintains height).</li>
+                        <li><strong>Frost Protection:</strong> Young tea plants (up to 3 years) are susceptible to
+                            frost. Cover with pine branches, dry grass, or straw.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Pests and Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pests:</strong> Watch for leaf-eating caterpillars and red spider mites. Major
+                            diseases are uncommon.</li>
+                        <li><strong>Harvesting:</strong> Begin plucking from 3-year-old plants. Under low maintenance,
+                            pluck every 15 days. Do not pluck leaves within 2.5 ft of the ground. Allow new shoots to
+                            grow 6-8 inches. Do not pluck inner shoots or those below the plucking table.</li>
+                        <li><strong>Yield:</strong> Depending on practices, yield ranges from 120 to 240 viss of made
+                            tea per acre.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกชา</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea1.jpg') }}" alt="Tea Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea2.jpg') }}" alt="Tea Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea3.jpg') }}" alt="Tea Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea4.jpg') }}" alt="Tea Harvesting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: ถิ่นกำเนิดและสายพันธุ์
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ถิ่นกำเนิด:</strong> มีถิ่นกำเนิดในตอนเหนือของเมียนมาร์ (ต้นน้ำอิรวดี) จีน
+                            และญี่ปุ่น</li>
+                        <li><strong>สายพันธุ์:</strong> ชาจีน (ปลูกในรัฐฉาน ต้นเตี้ย ใบเล็ก), ชาอัสสัม (สูง 30-45 นิ้ว
+                            ใบใหญ่ เส้นใบชัดเจน) และชาอินโดจีน (ใบหนา สีเหลืองหรือเขียวอ่อน)</li>
+                        <li><strong>พื้นที่ปลูก:</strong> รัฐฉาน (จ๊อกแม, น้ำสาน, ปิ่นล่อง, ปิ่นตะญา, เมืองกาย,
+                            เมืองสู้) และปลูกเล็กน้อยในรัฐกะฉิ่น, กะยา และชิน</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: สภาพอากาศ ดิน
+                        และการเตรียมดิน</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>สภาพอากาศ:</strong> ระดับความสูง 4,000-6,000 ฟุต ปริมาณน้ำฝน 65-85 นิ้ว
+                            อุณหภูมิเฉลี่ย 85°F ค่าความเป็นกรด-ด่าง 4.5-6 ชอบดินแดงบนที่สูงที่ระบายน้ำได้ดี</li>
+                        <li><strong>การเตรียมดิน:</strong> ถากถางป่าในเดือนธันวาคมและเผาในเดือนมีนาคม ปักหมุดระยะ 5 ฟุต
+                            x 5 ฟุต ขุดหลุมกว้าง 12 นิ้ว ลึก 18 นิ้ว ผสมมูลวัวและหน้าดิน</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3:
+                        การเพาะกล้าและการขยายพันธุ์</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเพาะเมล็ด:</strong> หว่านเมล็ดภายในหนึ่งสัปดาห์หลังเก็บเกี่ยว วางเมล็ดห่างกัน 1
+                            นิ้วในแปลงทราย กลบด้วยทรายและคลุมด้วยฟาง รดน้ำให้ชุ่ม และพรางแสง
+                            ย้ายลงถุงพลาสติกเมื่อต้นกล้างอก</li>
+                        <li><strong>การขยายพันธุ์แบบไม่อาศัยเพศ:</strong>
+                            เลือกต้นแม่ที่ให้ผลผลิตสูงและตัดแต่งกิ่งล่วงหน้า 6 เดือน
+                            ตัดกิ่งกึ่งแก่กึ่งอ่อนเฉียงใต้ข้อและตัดตรงเหนือข้อ ปลูกลงถุงที่มีปุ๋ยหมัก ย้ายปลูกเมื่อสูง
+                            10 นิ้ว</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การปลูกและการใส่ปุ๋ย
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การปลูก:</strong> ย้ายต้นกล้าอายุ 1-2 ปีในเดือนพฤษภาคม-มิถุนายน บนพื้นที่ลาดชัน
+                            เตรียมแถวตามแนวระดับระยะ 4 ฟุต x 2 ฟุต ขุดหลุมลึก 1.5 ฟุต</li>
+                        <li><strong>การใส่ปุ๋ย:</strong> ใส่ปุ๋ย 45 วันหลังปลูกเมื่อรากตั้งตัว ชาต้องการไนโตรเจนสูง
+                            ใส่ปุ๋ยยูเรีย 112 ปอนด์ต่อเอเคอร์ต่อปี</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การดูแลรักษาต้นชา</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การตัดแต่งกิ่ง:</strong> ทำในช่วงต้นและกลางมรสุม ที่ความสูงประมาณ 2 ฟุต
+                            เก็บกิ่งข้างที่แข็งแรง 2 กิ่ง และตัดกิ่งอื่นทำมุม 45 องศา ต่ำกว่า 4,000 ฟุต ตัดแต่งทุก 3 ปี
+                            (ประโยชน์: ทำให้ต้นกระชุ่มกระชวย เพิ่มผลผลิตใบอ่อน ควบคุมความสูง)</li>
+                        <li><strong>การป้องกันน้ำค้างแข็ง:</strong> ต้นชาอายุไม่เกิน 3 ปีอ่อนแอต่อน้ำค้างแข็ง
+                            คลุมด้วยกิ่งไม้ ฟาง หรือหญ้าแห้ง</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6: ศัตรูพืชและการเก็บเกี่ยว
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ศัตรูพืช:</strong> ระวังหนอนกินใบและไรแดง โรค principali ไม่ค่อยพบ</li>
+                        <li><strong>การเก็บเกี่ยว:</strong> เริ่มเก็บเกี่ยวจากต้นอายุ 3 ปี ภายใต้การดูแลต่ำ เก็บทุก 15
+                            วัน ห้ามเก็บใบภายใน 2.5 ฟุตจากพื้นดิน ปล่อยให้ยอดอ่อนยาว 6-8 นิ้ว
+                            ห้ามเก็บยอดด้านในหรือใต้โต๊ะเก็บเกี่ยว</li>
+                        <li><strong>ผลผลิต:</strong> ขึ้นอยู่กับการปฏิบัติ ผลผลิตอยู่ที่ 120 ถึง 240
+                            วิสต์ของชาแห้งต่อเอเคอร์</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">茶叶种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea1.jpg') }}" alt="Tea Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea2.jpg') }}" alt="Tea Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea3.jpg') }}" alt="Tea Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/tea4.jpg') }}" alt="Tea Harvesting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/10b981/ffffff?text=Tea+Harvesting'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：起源与品种</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>起源：</strong>原产于缅甸北部（伊洛瓦底江源头）、中国和日本。</li>
+                        <li><strong>品种：</strong>中国茶（种植于掸邦，植株矮小，叶片小）、阿萨姆茶（高30-45英寸，叶片大，叶脉明显）和印度支那茶（叶片厚，黄色或浅绿色）。</li>
+                        <li><strong>种植区：</strong>掸邦（皎脉、南散、宾朗、宾达雅、孟改、孟休），在克钦邦、克耶邦和钦邦有少量种植。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：气候、土壤与整地</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>气候：</strong>海拔4,000-6,000英尺，降雨量65-85英寸，平均气温85°F，土壤pH值4.5-6。喜排水良好的高地红壤。</li>
+                        <li><strong>整地：</strong>12月清理森林，3月焚烧。按5英尺x5英尺间距打桩。挖宽12英寸、深18英寸的坑，填入牛粪和表土混合物。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：育苗与繁殖</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>种子繁殖：</strong>采收后一周内播种。在沙床中按1英寸间距播种。覆沙盖草，浇透水并遮荫。幼苗出土后移入塑料袋。</li>
+                        <li><strong>无性繁殖：</strong>选择高产母树，提前6个月修剪。剪取半木质化插条，在节下斜切，节上平切。种植在装有堆肥的袋中。长至10英寸高时移栽。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：种植与施肥</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>种植：</strong>5-6月移栽1-2年生幼苗。在坡地上，按4英尺x2英尺准备等高行。挖深1.5英尺的坑。</li>
+                        <li><strong>施肥：</strong>种植后45天根系建立后施肥。茶树需氮量高；每年每亩施用112磅尿素。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：植株维护</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>修剪：</strong>在季风初期和中期进行。在约2英尺高度，保留2个强壮侧枝，其余以45度角剪除。在4,000英尺以下，每3年修剪一次。（好处：
+                            rejuvenates 植株，提高嫩叶产量，保持高度）。</li>
+                        <li><strong>防霜冻：</strong>幼茶树（3年以下）易受霜冻。用松枝、干草或稻草覆盖。</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：病虫害与采收</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>病虫害：</strong>注意食叶毛虫和红蜘蛛。重大病害不常见。</li>
+                        <li><strong>采收：</strong>从3年生茶树开始采摘。在低维护下，每15天采摘一次。不要采摘离地2.5英尺以内的叶子。让新梢长至6-8英寸。不要采摘内部新梢或采摘面以下的新梢。
+                        </li>
+                        <li><strong>产量：</strong>根据实践，每亩产量为120至240维斯（约190-380公斤）成品茶。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/tea')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | AgroSmart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Padauk', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-800 text-white p-4 shadow-md flex justify-between items-center">
+        <div class="font-bold text-xl">👑 Admin Panel</div>
+        <div class="flex items-center gap-4 text-sm">
+            <span>Admin: {{ session.get('username') }}</span>
+            <a href="/" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded transition">Dashboard</a>
+            <a href="/logout" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded transition">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- User စာရင်း -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">👥 User စာရင်း <span
+                        class="bg-blue-100 text-blue-700 text-sm px-2 py-0.5 rounded-full">{{ users|length }}</span>
+                </h3>
+                <div class="max-h-64 overflow-y-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-600">
+                            <tr>
+                                <th class="px-3 py-2 rounded-tl-lg">ID</th>
+                                <th class="px-3 py-2">Username</th>
+                                <th class="px-3 py-2 rounded-tr-lg">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                                <td class="px-3 py-2">{{ user.id }}</td>
+                                <td class="px-3 py-2 font-semibold text-gray-800">{{ user.username }}</td>
+                                <td class="px-3 py-2">
+                                    {% if user.role == 'admin' %}
+                                    <span
+                                        class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold">Admin</span>
+                                    {% else %}
+                                    <span
+                                        class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold">User</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Chat History -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">💬 နောက်ဆုံး Chat မှတ်တမ်း</h3>
+                <div class="max-h-64 overflow-y-auto space-y-3 pr-2">
+                    {% for h in history %}
+                    <div class="bg-gray-50 p-3 rounded-lg text-sm border-l-4 border-green-500 shadow-sm">
+                        <div class="font-bold text-gray-800 flex justify-between">
+                            <span>👤 {{ h.username }}</span>
+                            <span class="text-[10px] text-gray-400 font-normal">{{ h.created_at.strftime('%d/%m/%Y
+                                %H:%M') if h.created_at else '' }}</span>
+                        </div>
+                        <div class="text-gray-600 mt-2"><span class="font-semibold text-blue-600">မေး:</span> {{
+                            h.user_message }}</div>
+                        <div class="text-gray-500 mt-1"><span class="font-semibold text-green-600">ဖြေ:</span> {{
+                            h.bot_response[:80] }}...</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- ❓ Chatbot မဖြေနိုင်သော မေးခွန်းများ -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-orange-400">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold flex items-center gap-2">❓ Chatbot မဖြေနိုင်သော မေးခွန်းများ</h3>
+                <button onclick="loadUnanswered()"
+                    class="bg-orange-100 text-orange-700 hover:bg-orange-200 px-3 py-1 rounded-lg text-sm font-semibold transition">
+                    🔄 Refresh
+                </button>
+            </div>
+
+            <div class="overflow-x-auto max-h-60 overflow-y-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 rounded-tl-lg">မေးခွန်း</th>
+                            <th class="px-4 py-2">မေးသူ</th>
+                            <th class="px-4 py-2 rounded-tr-lg text-right">လုပ်ဆောင်ချက်</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unansweredTableBody">
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-gray-400">Data များ ရယူနေပါသည်...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 📰 သတင်းနှင့် ပိုးမွှားရောဂါ စီမံခန့်ခွဲမှု (Edit/Delete ပါဝင်သည်) -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-orange-500">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">📰 သတင်းနှင့် ပိုးမွှားရောဂါ စီမံခန့်ခွဲမှု</h3>
+
+            <!-- သတင်းအသစ်ထည့်ရန်/ပြင်ရန် Form -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <input type="hidden" id="news-edit-id" value="">
+                <input type="text" id="news-title" placeholder="ခေါင်းစဉ် (Title)"
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <input type="text" id="news-image"
+                    placeholder="ပုံလင့်ခ် (Image URL - /static/images/... သို့မဟုတ် https://...)"
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <textarea id="news-content" placeholder="အကြောင်းအရာ (Content)" rows="3"
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-400 md:col-span-2"></textarea>
+                <div class="md:col-span-2 flex items-center gap-4">
+                    <select id="news-category"
+                        class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                        <option value="သတင်း">သတင်း (News)</option>
+                        <option value="ပိုးမွှားရောဂါ">ပိုးမွှားရောဂါ (Pest/Disease)</option>
+                        <option value="အကြံပြုချက်">အကြံပြုချက် (Tips)</option>
+                    </select>
+                    <button onclick="saveNews()" id="news-submit-btn"
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
+                        ➕ သတင်း ထည့်သွင်းမည်
+                    </button>
+                    <button onclick="cancelNewsEdit()" id="news-cancel-btn"
+                        class="hidden bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
+                        ပယ်ဖျက်မည်
+                    </button>
+                </div>
+            </div>
+            <div id="news-msg" class="mb-4 text-sm font-semibold"></div>
+
+            <!-- သတင်းစာရင်း ဇယား -->
+            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-lg border border-gray-200">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">ခေါင်းစဉ်</th>
+                            <th class="px-4 py-3">အမျိုးအစား</th>
+                            <th class="px-4 py-3 text-right">လုပ်ဆောင်ချက်</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newsTableBody">
+                        {% for news in news_list %}
+                        <tr class="border-b border-gray-100 hover:bg-orange-50 transition" id="news-row-{{ news.id }}">
+                            <td class="px-4 py-3">{{ news.id }}</td>
+                            <td class="px-4 py-3 font-semibold text-gray-800">{{ news.title }}</td>
+                            <td class="px-4 py-3"><span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded">{{
+                                    news.category }}</span></td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button
+                                    onclick="editNews('{{ news.id }}', '{{ news.title | replace("'", "\\'") }}', '{{ news.content | replace("'", "\\'") | replace('\n', '\\n') }}', '{{ news.category }}', '{{ news.image_url }}')"
+                                    class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs transition">ပြင်မည်</button>
+                                <button onclick="deleteNews('{{ news.id }}')"
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition">ဖျက်မည်</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 📚 Chatbot Dataset စီမံခန့်ခွဲမှု (Edit/Delete ပါဝင်သည်) -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-400">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">📚 Chatbot Dataset စီမံခန့်ခွဲမှု</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <input type="hidden" id="dataset-edit-id" value="">
+                <input type="text" id="new-question" placeholder="မေးခွန်း (Question)"
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <input type="text" id="new-answer" placeholder="အဖြေ (Answer)"
+                    class="border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <div class="md:col-span-2 flex gap-4">
+                    <button onclick="saveDataset()" id="dataset-submit-btn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
+                        ➕ ထည့်သွင်းမည်
+                    </button>
+                    <button onclick="cancelDatasetEdit()" id="dataset-cancel-btn"
+                        class="hidden bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md">
+                        ပယ်ဖျက်မည်
+                    </button>
+                </div>
+            </div>
+            <div id="dataset-msg" class="mb-4 text-sm font-semibold"></div>
+
+            <!-- Dataset စာရင်း ဇယား -->
+            <div class="overflow-x-auto max-h-80 overflow-y-auto rounded-lg border border-gray-200">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">မေးခွန်း</th>
+                            <th class="px-4 py-3">အဖြေ</th>
+                            <th class="px-4 py-3 text-right">လုပ်ဆောင်ချက်</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ds in datasets %}
+                        <tr class="border-b border-gray-100 hover:bg-blue-50 transition">
+                            <td class="px-4 py-3">{{ ds.id }}</td>
+                            <td class="px-4 py-3 font-semibold text-gray-800 truncate max-w-xs">{{ ds.question }}</td>
+                            <td class="px-4 py-3 text-gray-600 truncate max-w-xs">{{ ds.answer }}</td>
+                            <td class="px-4 py-3 text-right space-x-2">
+                                <button
+                                    onclick="editDataset('{{ ds.id }}', '{{ ds.question | replace("'", "\\'") }}', '{{ ds.answer | replace("'", "\\'") | replace('\n', '\\n') }}')"
+                                    class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs transition">ပြင်မည်</button>
+                                <button onclick="deleteDataset('{{ ds.id }}')"
+                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition">ဖျက်မည်</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- စိုက်ခင်းအသစ် ထည့်ရန် -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">🌾 စိုက်ခင်းအသစ် ထည့်ရန်</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <input type="text" id="f-farm_id" placeholder="Farm ID (ဥပမာ - F030)"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="text" id="f-farm_name" placeholder="Farm Name"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="text" id="f-current_crop" placeholder="Current Crop"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="number" id="f-latitude" placeholder="Latitude" step="0.00001"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="number" id="f-longitude" placeholder="Longitude" step="0.00001"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+                <input type="text" id="f-soil_type" placeholder="Soil Type"
+                    class="border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400">
+            </div>
+            <button onclick="addFarm()"
+                class="mt-4 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md flex items-center gap-2">
+                ➕ ထည့်သွင်းမည်
+            </button>
+            <div id="farm-msg" class="mt-3 text-sm font-semibold"></div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 💰 စျေးနှုန်း ပြင်ဆင်ရန် အပိုင်း -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-yellow-400">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">💰 သီးနှံစျေးနှုန်း ပြင်ဆင်ရန်</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">သီးနှံ အမည်</label>
+                    <select id="price-crop-name" onchange="loadCurrentPrice()"
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                        <option value="">-- ရွေးပါ --</option>
+                        <option value="Rice">စပါး (Rice)</option>
+                        <option value="Tea">လက်ဖက် (Tea)</option>
+                        <option value="Rubber">ရော်ဘာ (Rubber)</option>
+                        <option value="Coffee">ကော်ဖီ (Coffee)</option>
+                        <option value="Corn">ပြောင်း (Corn)</option>
+                        <option value="Peanut">မြေပဲ (Peanut)</option>
+                        <option value="Crab Apple">ပင်စိမ်းသီး (Crab Apple)</option>
+                        <option value="Damson">မက်မန်းသီး (Damson)</option>
+                        <option value="Strawberry">စတော်ဘယ်ရီ (Strawberry)</option>
+                        <option value="Watermelon">ဖရဲသီး (Watermelon)</option>
+                        <option value="Pineapple">နာနတ်သီး (Pineapple)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">အနည်းဆုံးစျေး (Min)</label>
+                    <input type="number" id="price-min" placeholder="ဥပမာ - 35000"
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">အများဆုံးစျေး (Max)</label>
+                    <input type="number" id="price-max" placeholder="ဥပမာ - 60000"
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                </div>
+            </div>
+
+            <button onclick="updatePrice()"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md flex items-center gap-2">
+                💾 စျေးနှုန်း သိမ်းဆည်းမည်
+            </button>
+            <div id="price-msg" class="mt-3 text-sm font-semibold"></div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 📜 စျေးနှုန်းမှတ်တမ်း (History) အပိုင်း -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-400">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold flex items-center gap-2">📜 စျေးနှုန်းမှတ်တမ်း (နောက်ဆုံး ၅၀)</h3>
+                <button onclick="loadPriceHistory()"
+                    class="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1 rounded-lg text-sm font-semibold transition">🔄
+                    Refresh</button>
+            </div>
+            <div class="overflow-x-auto max-h-80 overflow-y-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 rounded-tl-lg">သီးနှံ</th>
+                            <th class="px-4 py-2 text-right">အနည်းဆုံး</th>
+                            <th class="px-4 py-2 text-right">အများဆုံး</th>
+                            <th class="px-4 py-2 rounded-tr-lg">ရက်စွဲ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-gray-400">Data များ ရယူနေပါသည်...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- 📄 PDF ဖိုင် တင်ရန် အပိုင်း -->
+        <!-- ======================================================= -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-red-400">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">📄 စိုက်ပျိုးနည်း PDF ဖိုင် တင်ရန်</h3>
+            <form id="pdfUploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">သီးနှံ အမည်</label>
+                    <select name="crop_name" required
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-red-400">
+                        <option value="">-- ရွေးပါ --</option>
+                        <option value="monsoon_rice">မိုးစပါး</option>
+                        <option value="summer_rice">နွေစပါး</option>
+                        <option value="tea">လက်ဖက်</option>
+                        <option value="corn">ပြောင်း</option>
+                        <option value="rubber">ရော်ဘာ</option>
+                        <option value="coffee">ကော်ဖီ</option>
+                        <option value="peanut">မြေပဲ</option>
+                        <option value="strawberry">စတော်ဘယ်ရီ</option>
+                        <option value="crab_apple">ပင်စိမ်းသီး</option>
+                        <option value="damson">မက်မန်းသီး</option>
+                        <option value="watermelon">ဖရဲသီး</option>
+                        <option value="pineapple">နာနတ်သီး</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">PDF ဖိုင် ရွေးချယ်ပါ</label>
+                    <input type="file" name="pdf_file" accept=".pdf" required
+                        class="border border-gray-300 px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-red-400 bg-gray-50">
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit"
+                        class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md flex items-center gap-2">
+                        ⬆️ PDF ဖိုင် တင်မည်
+                    </button>
+                </div>
+            </form>
+            <div id="pdf-msg" class="mt-3 text-sm font-semibold"></div>
+        </div>
+
+    </main>
+
+    <script>
+        // =======================================================
+        // ❓ Unanswered Questions Logic
+        // =======================================================
+        function loadUnanswered() {
+            fetch('/api/admin/unanswered_questions')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('unansweredTableBody');
+                    tbody.innerHTML = '';
+                    if (data.success && data.data.length > 0) {
+                        data.data.forEach(item => {
+                            const tr = document.createElement('tr');
+                            tr.className = 'border-b border-gray-100 hover:bg-orange-50 transition';
+                            tr.innerHTML = `
+                                <td class="px-4 py-2 font-semibold text-gray-800">${item.question}</td>
+                                <td class="px-4 py-2 text-gray-500">${item.username || 'Unknown'}</td>
+                                <td class="px-4 py-2 text-right">
+                                    <button onclick="fillDataset('${item.question.replace(/'/g, "\\'")}')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded transition shadow-sm">
+                                        အဖြေထည့်ရန်
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">မဖြေနိုင်သော မေးခွန်း မရှိသေးပါ။ 🎉</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('unansweredTableBody').innerHTML = '<tr><td colspan="3" class="text-center py-4 text-red-500">Error ဖြစ်သွားပါသည်</td></tr>';
+                });
+        }
+
+        function fillDataset(question) {
+            document.getElementById('new-question').value = question;
+            document.getElementById('new-answer').value = '';
+            document.getElementById('new-answer').focus();
+            document.getElementById('new-question').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // =======================================================
+        // 💰 စျေးနှုန်း ပြင်ဆင်ခြင်း Logic
+        // =======================================================
+        function loadCurrentPrice() {
+            const cropName = document.getElementById('price-crop-name').value;
+            const minInput = document.getElementById('price-min');
+            const maxInput = document.getElementById('price-max');
+
+            if (!cropName) {
+                minInput.value = '';
+                maxInput.value = '';
+                return;
+            }
+
+            fetch(`/api/crop_price/${cropName}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const prices = data.price.replace(' ကျပ်', '').split(' - ');
+                        minInput.value = parseInt(prices[0].replace(/,/g, ''));
+                        maxInput.value = parseInt(prices[1].replace(/,/g, ''));
+                    } else {
+                        minInput.value = '';
+                        maxInput.value = '';
+                    }
+                });
+        }
+
+        function updatePrice() {
+            const crop_name = document.getElementById('price-crop-name').value;
+            const min_price = document.getElementById('price-min').value;
+            const max_price = document.getElementById('price-max').value;
+            const msg = document.getElementById('price-msg');
+
+            if (!crop_name || !min_price || !max_price) {
+                msg.innerText = '❌ အကွက်အားလုံး ဖြည့်ပါ။';
+                msg.className = 'mt-3 text-sm text-red-500 font-semibold';
+                return;
+            }
+
+            fetch('/api/admin/update_price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ crop_name: crop_name, min_price: parseInt(min_price), max_price: parseInt(max_price) })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerText = data.message;
+                    msg.className = 'mt-3 text-sm ' + (data.success ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold');
+                    if (data.success) {
+                        loadPriceHistory();
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                });
+        }
+
+        // =======================================================
+        // 📜 စျေးနှုန်းမှတ်တမ်း ဆွဲထုတ်ခြင်း Logic
+        // =======================================================
+        function loadPriceHistory() {
+            fetch('/api/admin/price_history')
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('historyTableBody');
+                    tbody.innerHTML = '';
+
+                    if (data.success && data.data.length > 0) {
+                        data.data.forEach(item => {
+                            const dateStr = item.recorded_date ? item.recorded_date : (item.updated_at ? item.updated_at.split('T')[0] : '-');
+
+                            const tr = document.createElement('tr');
+                            tr.className = 'border-b border-gray-100 hover:bg-purple-50 transition';
+                            tr.innerHTML = `
+                                <td class="px-4 py-2 font-bold text-gray-800">${item.crop_name}</td>
+                                <td class="px-4 py-2 text-right text-green-600 font-semibold">${item.min_price.toLocaleString()}</td>
+                                <td class="px-4 py-2 text-right text-red-600 font-semibold">${item.max_price.toLocaleString()}</td>
+                                <td class="px-4 py-2 text-xs text-gray-500">${dateStr}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-400">မှတ်တမ်း မရှိသေးပါ</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Error ဖြစ်သွားပါသည်</td></tr>';
+                });
+        }
+
+        // =======================================================
+        // 📚 Dataset ထည့်သွင်း/ပြင်ဆင်ခြင်း Logic
+        // =======================================================
+        function saveDataset() {
+            const id = document.getElementById('dataset-edit-id').value;
+            const question = document.getElementById('new-question').value.trim();
+            const answer = document.getElementById('new-answer').value.trim();
+            const msg = document.getElementById('dataset-msg');
+
+            if (!question || !answer) {
+                msg.innerText = '❌ မေးခွန်းနှင့် အဖြေ နှစ်ခုလုံး ထည့်ပါ။';
+                msg.className = 'mt-3 text-sm text-red-500 font-semibold';
+                return;
+            }
+
+            const url = id ? '/api/admin/update_dataset' : '/api/admin/add_dataset';
+            const payload = id ? { id: parseInt(id), question: question, answer: answer } : { question: question, answer: answer };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerText = data.message;
+                    msg.className = 'mt-3 text-sm ' + (data.success ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold');
+                    if (data.success) {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+        }
+
+        function editDataset(id, question, answer) {
+            document.getElementById('dataset-edit-id').value = id;
+            document.getElementById('new-question').value = question;
+            document.getElementById('new-answer').value = answer;
+
+            document.getElementById('dataset-submit-btn').innerText = '💾 ပြင်ဆင်မည်';
+            document.getElementById('dataset-submit-btn').classList.replace('bg-blue-600', 'bg-green-600');
+            document.getElementById('dataset-cancel-btn').classList.remove('hidden');
+
+            document.getElementById('new-question').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelDatasetEdit() {
+            document.getElementById('dataset-edit-id').value = '';
+            document.getElementById('new-question').value = '';
+            document.getElementById('new-answer').value = '';
+
+            document.getElementById('dataset-submit-btn').innerText = '➕ ထည့်သွင်းမည်';
+            document.getElementById('dataset-submit-btn').classList.replace('bg-green-600', 'bg-blue-600');
+            document.getElementById('dataset-cancel-btn').classList.add('hidden');
+        }
+
+        function deleteDataset(id) {
+            if (!confirm('ဒီ Dataset ကို ဖျက်ရန် သေချာပါသလား?')) return;
+
+            fetch('/api/admin/delete_dataset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(id) })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+
+        // =======================================================
+        // 📰 သတင်း ထည့်သွင်း/ပြင်ဆင်ခြင်း Logic
+        // =======================================================
+        function saveNews() {
+            const id = document.getElementById('news-edit-id').value;
+            const title = document.getElementById('news-title').value.trim();
+            const content = document.getElementById('news-content').value.trim();
+            const category = document.getElementById('news-category').value;
+            const image_url = document.getElementById('news-image').value.trim();
+            const msg = document.getElementById('news-msg');
+
+            if (!title || !content) {
+                msg.innerText = '❌ ခေါင်းစဉ်နှင့် အကြောင်းအရာ ဖြည့်ပါ။';
+                msg.className = 'mt-3 text-sm text-red-500 font-semibold';
+                return;
+            }
+
+            const url = id ? '/api/admin/update_news' : '/api/admin/add_news';
+            const payload = id ? { id: parseInt(id), title: title, content: content, category: category, image_url: image_url } : { title: title, content: content, category: category, image_url: image_url };
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerText = data.message;
+                    msg.className = 'mt-3 text-sm ' + (data.success ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold');
+                    if (data.success) {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+        }
+
+        function editNews(id, title, content, category, imageUrl) {
+            document.getElementById('news-edit-id').value = id;
+            document.getElementById('news-title').value = title;
+            document.getElementById('news-content').value = content;
+            document.getElementById('news-category').value = category;
+            document.getElementById('news-image').value = imageUrl;
+
+            document.getElementById('news-submit-btn').innerText = '💾 ပြင်ဆင်မည်';
+            document.getElementById('news-submit-btn').classList.replace('bg-orange-500', 'bg-green-600');
+            document.getElementById('news-cancel-btn').classList.remove('hidden');
+
+            document.getElementById('news-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelNewsEdit() {
+            document.getElementById('news-edit-id').value = '';
+            document.getElementById('news-title').value = '';
+            document.getElementById('news-content').value = '';
+            document.getElementById('news-image').value = '';
+
+            document.getElementById('news-submit-btn').innerText = '➕ သတင်း ထည့်သွင်းမည်';
+            document.getElementById('news-submit-btn').classList.replace('bg-green-600', 'bg-orange-500');
+            document.getElementById('news-cancel-btn').classList.add('hidden');
+        }
+
+        function deleteNews(id) {
+            if (!confirm('ဒီသတင်းကို ဖျက်ရန် သေချာပါသလား?')) return;
+
+            fetch('/api/admin/delete_news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: parseInt(id) })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+
+        // =======================================================
+        // 🌾 စိုက်ခင်း ထည့်သွင်းခြင်း Logic
+        // =======================================================
+        function addFarm() {
+            const data = {
+                farm_id: document.getElementById('f-farm_id').value.trim(),
+                farm_name: document.getElementById('f-farm_name').value.trim(),
+                current_crop: document.getElementById('f-current_crop').value.trim(),
+                latitude: parseFloat(document.getElementById('f-latitude').value),
+                longitude: parseFloat(document.getElementById('f-longitude').value),
+                soil_type: document.getElementById('f-soil_type').value.trim()
+            };
+            const msg = document.getElementById('farm-msg');
+
+            if (!data.farm_id || !data.farm_name || !data.latitude || !data.longitude) {
+                msg.innerText = '❌ လိုအပ်သော အချက်အလက်များ ဖြည့်ပါ။';
+                msg.className = 'mt-3 text-sm text-red-500 font-semibold';
+                return;
+            }
+
+            fetch('/api/admin/add_farm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerText = data.message;
+                    msg.className = 'mt-3 text-sm ' + (data.success ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold');
+                    if (data.success) {
+                        document.getElementById('f-farm_id').value = '';
+                        document.getElementById('f-farm_name').value = '';
+                        document.getElementById('f-current_crop').value = '';
+                        document.getElementById('f-latitude').value = '';
+                        document.getElementById('f-longitude').value = '';
+                        document.getElementById('f-soil_type').value = '';
+                    }
+                });
+        }
+
+        // =======================================================
+        // 📄 PDF တင်ခြင်း Logic
+        // =======================================================
+        document.getElementById('pdfUploadForm').onsubmit = function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const msg = document.getElementById('pdf-msg');
+
+            msg.innerText = '⏳ ဖိုင် တင်နေပါသည်...';
+            msg.className = 'mt-3 text-sm text-blue-600 font-semibold';
+
+            fetch('/api/admin/upload_pdf', {
+                method: 'POST',
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerText = data.message;
+                    msg.className = 'mt-3 text-sm ' + (data.success ? 'text-green-600 font-semibold' : 'text-red-500 font-semibold');
+                    if (data.success) {
+                        document.getElementById('pdfUploadForm').reset();
+                    }
+                })
+                .catch(err => {
+                    msg.innerText = '❌ Error: ' + err;
+                    msg.className = 'mt-3 text-sm text-red-500 font-semibold';
+                });
+        };
+
+        // Page စတင်ဖွင့်တာနဲ့ လိုအပ်တာတွေကို ခေါ်မယ်
+        window.onload = function () {
+            loadPriceHistory();
+            loadUnanswered();
+        };
+    </script>
+</body>
+
+</html>

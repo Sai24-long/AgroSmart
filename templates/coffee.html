@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ကော်ဖီ စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ ကော်ဖီခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #8b4513;
+            /* ကော်ဖီအရောင် (Brown) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">ကော်ဖီ စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee1.jpg') }}" alt="Coffee Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee2.jpg') }}" alt="Coffee Cherries"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Cherries'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee3.jpg') }}" alt="Coffee Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee.jpg') }}" alt="Shade Trees"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Shade+Trees'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee6.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - စိုက်ခင်းမြေနေရာ
+                        ရွေးချယ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေအနေအထား:</strong> မြေစောင်းရာခိုင်နှုန်း (slope) ၁၅% အောက်သာရှိရပါမယ်။
+                            မြေဆီဩဇာထက်သန်ပြီး မြေချဉ်ငံကိန်း ၄.၅ - ၆.၅ ကြားအတွင်းဆို ရပါပြီ။ ဆီးနှင်းခါးကျရောက်သည့်
+                            နေရာကိုတော့ ရှောင်ရပါမယ်။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - ကော်ဖီမျိုး ရွေးချယ်ခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ကုန်းမြင့်ကော်ဖီ (Arabica):</strong> ပင်လယ်ရေမျက်နှာပြင်အထက် ၂၅၀၀ ပေကျော်ပါက
+                            စိုက်ပျိုးနိုင်ပြီး ပြင်ဦးလွင်ဒေသ၊ ရှမ်းပြည်နယ်၊ ချင်းပြည်နယ် စတဲ့ တောင်တန်းဒေသတွေမှာ
+                            စိုက်ပျိုးမှုများပါတယ်။</li>
+                        <li><strong>မြေနိမ့်ကော်ဖီ (Robusta):</strong> ပင်လယ်ရေမျက်နှာပြင် ပေ ၂၅၀၀ အောက်ဆိုရင်
+                            စိုက်ပျိုးနိုင်ပြီး ကရင်ပြည်နယ် သံတောင်ကြီးဒေသ၊ တနင်္သာရီ စတဲ့ နေရာတွေမှာ စိုက်ပျိုးကြပါတယ်။
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - ပင်ကြားတန်းကြား အကွာအဝေး
+                        သတ်မှတ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပင်စည်အများထားစနစ်:</strong> ပင်ကြားတန်းကြား ၈ ပေ x ၆ ပေ သို့မဟုတ် ၈ ပေပတ်လည်ထား၍
+                            စိုက်ပျိုးပြီး အပင်ဦးရေ ၉၀၇ ပင် (တစ်ပင် ပင်စည် ၃ ခု) နှင့် အပင်ဦးရေ ၆၈၀ ပင် (တစ်ပင် ပင်စည်
+                            ၄-၅ ခု) ဆိုပြီး တွက်၍ စိုက်ပျိုးနိုင်ပါသည်။</li>
+                        <li><strong>ပင်စည်တစ်ခုတည်းထားသောစနစ်:</strong> အသင့်တော်ဆုံး ပင်ကြားတန်းကြား အကွာအဝေးမှာ ၈ ပေ x
+                            ၄ ပေ ဖြစ်ပြီး တစ်ဧက ၁၃၆၀ ပင်သည် စံချိန်ကိုက် စိုက်နည်းစနစ်ဖြစ်ပါသည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - ပျိုးပင် မြေချစိုက်ခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပြင်ဆင်မှု:</strong> စိုက်ကျင်းတူးခြင်း၊ ကျင်းဖုံးခြင်းတို့ကို
+                            ကြိုတင်ပြင်ဆင်ထားပြီးပါက ပျိုးပင်မြေချစိုက်ကြရပါမယ်။</li>
+                        <li><strong>သတိပြုရမည့်အချက်များ:</strong> အစိုဓာတ်လုံလောက်မှုရှိရန် သို့မဟုတ်
+                            ရေအလုံအလောက်သွင်းပေးရန် လိုအပ်ပါသည်။ ပျိုးအိတ်စိုက်ပါက အိတ်ခွာဖို့ မမေ့ရပါ၊ မြေလုံးမကွဲရပါ၊
+                            အမြစ်ခေါက်ပါက ဖြတ်ပစ်ပြီးမှ စိုက်ရန် အရေးကြီးပါသည်။ ပျိုးသက် ၂ နှစ်ကျော်ပါက
+                            မစိုက်သင့်တော့ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - အရိပ်ပင် စိုက်ပျိုးခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ကြိုတင်ပြင်ဆင်ခြင်း:</strong> အရိပ်ပင်များကို ၂ နှစ်ကြိုတင်၍
+                            စိုက်ပျိုးထားရှိသင့်ပါသည်။ မြေနိမ့်ကော်ဖီသည် ကုန်မြင့်ကော်ဖီထက် အရိပ်ပိုလိုအပ်ပြီး
+                            အရိပ်မဲ့စိုက်၍ မရပါ။</li>
+                        <li><strong>အရိပ်ပင်အမျိုးအစားများ:</strong> သစ်ရနိုင်သောအပင် (ခါတော်မှီ၊ ရေပိတုန်း) နှင့်
+                            အသီးရအပင် (ထောပတ်၊ ပိန္နဲ၊ မျောက်ငို၊ မက္ကဒေးမီးယား) စသဖြင့် စိုက်ပျိုးနိုင်ပါသည်။</li>
+                        <li><strong>ကောင်းသော အရိပ်ပင်၏ လက္ခဏာများ:</strong> ကြီးထွားမှုမြန်ပြီး အရိပ်ကောင်းရခြင်း၊
+                            အမြစ်နက်နက်ဆင်းသော အပင်ဖြစ်ခြင်း၊ ရွက်ပြားသေးပြီး ကိုင်းဖြတ်ပြုပြင်မှုကို ခံနိုင်ရည်ရှိခြင်း
+                            တို့ဖြစ်ပါသည်။ မြန်မာပြည်မှာတော့ ခါတော်မှီ (Silver Oak) နှင့် ပင်လယ်ကသစ် (Dadap) တို့ကို
+                            အများဆုံး စိုက်ပျိုးကြပါတယ်။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) -
+                        အပင်ပြုစုစောင့်ရှောက်ခြင်းနှင့် ကိုင်းဖြတ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပြုစုစောင့်ရှောက်ခြင်း:</strong> ကော်ဖီပင်များ စိုက်ပျိုးပြီးပါက လိုအပ်သော
+                            အာဟာရဓာတ်များ ဖြည့်တင်းပေးခြင်းနှင့် ပိုးမွှားရောဂါများကို ကာကွယ်တားဆီးရန် လိုအပ်ပါသည်။</li>
+                        <li><strong>ကိုင်းဖြတ်ပြုပြင်ခြင်း:</strong> ကော်ဖီသီးကိုင်းများများရရန်၊
+                            ပိုးမွှားရောဂါကာကွယ်ရန်၊ နှစ်ခြားသီးခြင်းများကာကွယ်ရန်နှင့် မလိုအပ်သော/သေနေသောကိုင်းများ
+                            ဖယ်ရှားရန် ကိုင်းဖြတ်ခြင်းကို တစ်နှစ်လျှင် ၂ ကြိမ် ပြုလုပ်ပေးသင့်ပါသည်။ ပထမအကြိမ်ကို
+                            အသီးခူးဆွတ်ပြီးချိန် (မတ်လ) တွင်လည်းကောင်း၊ ဒုတိယအကြိမ်ကို (ဇွန်၊ ဇူလိုင်လများ) တွင်
+                            လုပ်ဆောင်သင့်ပါသည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Coffee
+                    Cultivation</h1>
+                <p class="text-xl text-brand-600 font-semibold">Good Agricultural Practices (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee1.jpg') }}" alt="Coffee Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee2.jpg') }}" alt="Coffee Cherries"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Cherries'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee3.jpg') }}" alt="Coffee Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee5.jpg') }}" alt="Shade Trees"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Shade+Trees'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee6.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Land Selection</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>The slope of the land should ideally be under 15%.</li>
+                        <li>The soil must be fertile, with a pH level ranging between 4.5 and 6.5.</li>
+                        <li>Areas prone to severe frost must be avoided.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Selection of Varieties</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Arabica (Highland):</strong> Can be cultivated over 2,500 feet above sea level.
+                            Widely grown in Pyin Oo Lwin, Shan State, and Chin State.</li>
+                        <li><strong>Robusta (Lowland):</strong> Can be cultivated below 2,500 feet. Commonly planted in
+                            Thandaunggyi (Kayin State) and Tanintharyi.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Spacing</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Multi-Stem System:</strong> 8 ft × 6 ft or 8 ft × 8 ft. Density: 907 plants/acre (3
+                            stems) or 680 plants/acre (4-5 stems).</li>
+                        <li><strong>Single-Stem System:</strong> Standard distance is 8 ft × 4 ft, accommodating 1,360
+                            plants per acre.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Field Planting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Ensure adequate moisture or provide sufficient irrigation.</li>
+                        <li>If using polybags, remove bags, keep root ball intact, and trim any coiled roots before
+                            planting.</li>
+                        <li>Seedlings over 2 years old should not be used.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Planting Shade Trees</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Shade trees should ideally be planted 2 years in advance. Robusta requires more shade than
+                            Arabica.</li>
+                        <li><strong>Types:</strong> Timber trees (e.g., Silver Oak, Red Cedar) or Fruit trees (e.g.,
+                            Avocado, Jackfruit, Macadamia).</li>
+                        <li><strong>Characteristics:</strong> Fast-growing with good canopy, deep roots, and small
+                            leaves tolerant to pruning. Silver Oak and Dadap are primarily used in Myanmar.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Crop Management & Pruning</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Provide required nutrients and protect from pests/diseases.</li>
+                        <li><strong>Pruning Objectives:</strong> Increase fruit-bearing branches, prevent pests,
+                            minimize alternate bearing, and enhance vigor.</li>
+                        <li><strong>Schedule:</strong> Twice a year. First post-harvest (March) to clear dead/low
+                            branches. Second mid-monsoon (June-July) to remove unnecessary shoots.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกกาแฟ</h1>
+                <p class="text-xl text-brand-600 font-semibold">แนวปฏิบัติทางการเกษตรที่ดี (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee1.jpg') }}" alt="Coffee Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee2.jpg') }}" alt="Coffee Cherries"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Cherries'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee3.jpg') }}" alt="Coffee Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee5.jpg') }}" alt="Shade Trees"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Shade+Trees'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee6.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: การเลือกพื้นที่เพาะปลูก
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ความลาดชันของพื้นที่ควรต่ำกว่า 15%</li>
+                        <li>ดินต้องอุดมสมบูรณ์ มีค่า pH ระหว่าง 4.5 ถึง 6.5</li>
+                        <li>หลีกเลี่ยงพื้นที่ที่เกิดน้ำค้างแข็งรุนแรง</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: การเลือกสายพันธุ์</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>อาราบิก้า (ที่สูง):</strong> ปลูกได้ที่ระดับความสูงกว่า 2,500 ฟุต
+                            นิยมปลูกในปยินอูลวิน รัฐฉาน และรัฐชิน</li>
+                        <li><strong>โรบัสต้า (ที่ราบ):</strong> ปลูกได้ที่ระดับความสูงต่ำกว่า 2,500 ฟุต
+                            นิยมปลูกในทันดองจี (รัฐกะเหรี่ยง) และตะนาวศรี</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: ระยะปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ระบบหลายลำต้น:</strong> 8 ฟุต x 6 ฟุต หรือ 8 ฟุต x 8 ฟุต ความหนาแน่น: 907
+                            ต้น/เอเคอร์ (3 ลำต้น) หรือ 680 ต้น/เอเคอร์ (4-5 ลำต้น)</li>
+                        <li><strong>ระบบลำต้นเดียว:</strong> ระยะมาตรฐานคือ 8 ฟุต x 4 ฟุต รองรับ 1,360 ต้นต่อเอเคอร์
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การปลูกในแปลง</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ตรวจสอบให้แน่ใจว่ามีความชื้นเพียงพอหรือให้น้ำอย่างเพียงพอ</li>
+                        <li>หากใช้ถุงพลาสติก อย่าลืมเอาถุงออก รักษาก้อนรากไว้ให้สมบูรณ์ และตัดรากที่ขดก่อนปลูก</li>
+                        <li>ไม่ควรใช้ต้นกล้าที่มีอายุเกิน 2 ปี</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การปลูกไม้บังร่ม</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ควรปลูกไม้บังร่มล่วงหน้า 2 ปี โรบัสต้าต้องการร่มเงามากกว่าอาราบิก้า</li>
+                        <li><strong>ประเภท:</strong> ไม้เนื้อแข็ง (เช่น Silver Oak, Red Cedar) หรือไม้ผล (เช่น อะโวคาโด,
+                            ขนุน, มะคาเดเมีย)</li>
+                        <li><strong>ลักษณะ:</strong> เติบโตเร็ว มีทรงพุ่มดี รากลึก และใบเล็กทนต่อการตัดแต่ง
+                            ในเมียนมาร์นิยมใช้ Silver Oak และ Dadap</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6:
+                        การจัดการและการตัดแต่งกิ่ง</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ให้สารอาหารที่จำเป็นและปกป้องจากศัตรูพืชและโรค</li>
+                        <li><strong>วัตถุประสงค์:</strong> เพิ่มกิ่งที่ออกผล ป้องกันศัตรูพืช ลดการออกผลแบบปีเว้นปี
+                            และเพิ่มความแข็งแรง</li>
+                        <li><strong>กำหนดการ:</strong> ปีละ 2 ครั้ง ครั้งแรกหลังเก็บเกี่ยว (มีนาคม)
+                            เพื่อกำจัดกิ่งที่ตาย/ต่ำ ครั้งที่สองกลางมรสุม (มิถุนายน-กรกฎาคม) เพื่อกำจัดหน่อที่ไม่จำเป็น
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">咖啡种植综合指南</h1>
+                <p class="text-xl text-brand-600 font-semibold">良好农业规范 (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee1.jpg') }}" alt="Coffee Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee2.jpg') }}" alt="Coffee Cherries"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Cherries'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee3.jpg') }}" alt="Coffee Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Coffee+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee5.jpg') }}" alt="Shade Trees"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Shade+Trees'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/coffee6.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：土地选择</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>土地坡度最好低于15%</li>
+                        <li>土壤必须肥沃，pH值在4.5到6.5之间</li>
+                        <li>必须避开易受严重霜冻的地区</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：品种选择</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>阿拉比卡（高地）：</strong>可在海拔2,500英尺以上种植。广泛种植于彬乌伦、掸邦和钦邦</li>
+                        <li><strong>罗布斯塔（低地）：</strong>可在海拔2,500英尺以下种植。常见于丹当吉（克伦邦）和德林达依</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：株行距</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>多干系统：</strong>8英尺×6英尺或8英尺×8英尺。密度：每英亩907株（3干）或680株（4-5干）</li>
+                        <li><strong>单干系统：</strong>标准距离为8英尺×4英尺，每英亩可容纳1,360株</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：大田定植</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>确保水分充足或提供足够的灌溉</li>
+                        <li>如果使用塑料袋，记得取下袋子，保持根球完整，并在种植前修剪任何卷曲的根</li>
+                        <li>不应使用超过2年生的幼苗</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：种植遮荫树</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>最好提前2年种植遮荫树。罗布斯塔比阿拉比卡需要更多的遮荫</li>
+                        <li><strong>类型：</strong>用材树（如银橡树、红杉）或果树（如牛油果、菠萝蜜、夏威夷果）</li>
+                        <li><strong>特点：</strong>生长快、树冠好、根系深、叶片小且耐修剪。在缅甸主要使用银橡树和刺桐</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：作物管理与修剪</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>提供所需的养分并保护免受病虫害</li>
+                        <li><strong>目标：</strong>增加结果枝、预防病虫害、减少大小年现象、增强树势</li>
+                        <li><strong>时间表：</strong>每年两次。第一次在采收后（3月）清除枯死/低位枝条。第二次在季风中期（6-7月）去除不必要的新梢</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/coffee')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

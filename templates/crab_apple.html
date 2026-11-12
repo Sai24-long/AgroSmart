@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ပင်စိမ်းသီး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ ပင်စိမ်းသီးခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1595054055726-7e1b4e7b3f4f?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #d97706;
+            /* ပင်စိမ်းသီးအရောင် (Amber) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">ပင်စိမ်းသီး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+               
+            </div>
+
+            <!-- Horizontal Image Slider (ပုံ ၆ ပုံ) -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple1.jpg') }}" alt="Crab Apple Tree"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Tree'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple2.jpg') }}" alt="Crab Apple Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple3.jpg') }}"
+                        alt="Crab Apple Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - အကြောင်းအရာနှင့် ရာသီဥတု
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>အကြောင်းအရာ:</strong> ပင်စိမ်းသီး (Pin-sein / Docynia indica) သည် မြန်မာနိုင်ငံ၏
+                            ရှမ်းပြည်နယ်နှင့် တောင်တန်းဒေသအချို့တွင် တွေ့ရှိရသော အသီးပင်တစ်မျိုးဖြစ်သည်။
+                            နှင်းဆီမျိုးရင်းဝင် အပင်ဖြစ်ပြီး အသီးများသည် လုံးဝိုင်းကာ အစိမ်းရောင်မှ အဝါရောင်သို့
+                            ပြောင်းလဲတတ်သည်။ အရသာမှာ ချဉ်သဖြင့် အသုပ်၊ အထောင်းနှင့် ဟင်းချိုများတွင်
+                            ထည့်သွင်းအသုံးပြုကြသည်။</li>
+                        <li><strong>ရာသီဥတု:</strong> တောင်ပေါ်ဒေသများတွင် စိုက်ပျိုးနိုင်သည်။ နေရောင်ခြည်ရရှိပြီး
+                            လေဝင်လေထွက်ကောင်းသော နေရာကို ရွေးချယ်သင့်သည်။ မြေသားကောင်းမွန်ပြီး ရေစီးရေလာကောင်းသော
+                            မြေမျိုးသည် အမြစ်ဖွံ့ဖြိုးမှုအတွက် သင့်တော်သည်။ ရေဝပ်တတ်သော မြေများကို ရှောင်ကြဉ်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - စိုက်ပျိုးနည်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မျိုးပွားခြင်း:</strong> ပင်စိမ်းသီးပင်ကို မျိုးစေ့မှတစ်ဆင့်
+                            ပျိုးထောင်စိုက်ပျိုးနိုင်သည်။ အသီးမှရရှိသော မျိုးစေ့များကို သန့်စင်ပြီး ပျိုးမြေထဲတွင်
+                            စိုက်ပျိုးရသည်။</li>
+                        <li><strong>ရွှေ့ပြောင်းစိုက်ပျိုးခြင်း:</strong> ပျိုးပင်ငယ်များ အမြစ်နှင့် အရွက်များ
+                            ကောင်းစွာဖွံ့ဖြိုးလာသောအခါ သင့်တော်သော မြေကွက်ထဲသို့ ရွှေ့ပြောင်းစိုက်ပျိုးနိုင်သည်။
+                            မျိုးစေ့မှ ပေါက်သော အပင်များတွင် ကြီးထွားချိန်နှင့် အသီးသီးချိန် ကွာခြားနိုင်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - ရေလောင်းခြင်းနှင့်
+                        မြေဩဇာကျွေးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေလောင်းခြင်း:</strong> ပျိုးပင်ငယ်များ ကြီးထွားနေစဉ် မြေမခြောက်လွန်းစေရန်
+                            ရေလောင်းပေးရသည်။ သို့သော် ရေအလွန်အကျွံလောင်း၍ ရေဝပ်ခြင်းမဖြစ်စေရန် ဂရုစိုက်ရမည်။</li>
+                        <li><strong>မြေဩဇာ:</strong> အပင်၏ ကြီးထွားမှုကောင်းစေရန် ဆွေးမြည့်ပြီးသော သဘာဝမြေဩဇာကို
+                            အသုံးပြုနိုင်သည်။ မြေဩဇာကို အပင်၏ အရွယ်အစားနှင့် မြေအခြေအနေအလိုက် သင့်တော်စွာ
+                            ထည့်သွင်းပေးသင့်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - ပိုးမွှားနှင့်
+                        ရောဂါကာကွယ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>အပင်၏ အရွက်၊ အကိုင်းနှင့် အသီးများကို ပုံမှန်စစ်ဆေးသင့်သည်။</li>
+                        <li>ပိုးမွှားကျရောက်သော အစိတ်အပိုင်းများကို တွေ့ရှိပါက ဖယ်ရှားပေးပြီး အပင်ပတ်ဝန်းကျင်ကို
+                            သန့်ရှင်းစွာ ထားရှိရမည်။</li>
+                        <li>အပင်ခြေရင်းတွင် ရေမဝပ်စေရန်နှင့် လေဝင်လေထွက်ကောင်းစေရန်လည်း ဂရုစိုက်သင့်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - အသီးရိတ်သိမ်းခြင်းနှင့်
+                        အသုံးဝင်ပုံ</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ပင်စိမ်းသီးပင်သည် ကြီးထွားဖွံ့ဖြိုးလာပြီးနောက် အသီးသီးသည်။ အသီးများကို မျိုးစိတ်နှင့်
+                            ဒေသရာသီဥတုပေါ်မူတည်၍ ရိတ်သိမ်းရသည်။</li>
+                        <li>ရင့်မှည့်လာသော အသီးများကို ခူးယူကာ အစားအစာများတွင် အသုံးပြုနိုင်သည်။ ပင်စိမ်းသီးသည်
+                            ဒေသခံတို့၏ အစားအစာနှင့် ရိုးရာစားသောက်မှုတွင် အသုံးဝင်သော သဘာဝအသီးတစ်မျိုးဖြစ်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) - နိဂုံး</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ပင်စိမ်းသီးပင်သည် တောင်တန်းဒေသများတွင် တွေ့ရပြီး ဒေသခံအစားအစာများတွင် အသုံးဝင်သော
+                            အသီးပင်တစ်မျိုးဖြစ်သည်။ စိုက်ပျိုးရာတွင် မြေအမျိုးအစား၊ ရေစီးရေလာ၊ ရေလောင်းခြင်းနှင့်
+                            ပိုးမွှားကာကွယ်ခြင်းတို့ကို ဂရုစိုက်ခြင်းဖြင့် အပင်ကြီးထွားမှုကို အထောက်အကူပြုနိုင်သည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Crab Apple
+                    (Pin-sein) Cultivation</h1>
+                <p class="text-xl text-brand-600 font-semibold">Good Agricultural Practices (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple1.jpg') }}" alt="Crab Apple Tree"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Tree'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple2.jpg') }}" alt="Crab Apple Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple3.jpg') }}"
+                        alt="Crab Apple Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Introduction and Climate</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Introduction:</strong> Pin-sein (Docynia indica) is a fruit-bearing tree found in
+                            mountainous areas of Myanmar, including parts of Shan State. It belongs to the rose family.
+                            Its fruits are generally round and change from green to yellow as they mature. The fruit has
+                            a sour taste and is commonly used in local foods such as salads, traditional fruit mixtures,
+                            and soups.</li>
+                        <li><strong>Climate:</strong> Grows in mountainous regions. A location with adequate sunlight
+                            and good air circulation is recommended. Well-drained, fertile soil helps the roots develop
+                            properly. Avoid areas where water collects around the roots.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Cultivation Methods</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Propagation:</strong> Pin-sein can be propagated from seeds. Seeds collected from
+                            mature fruits should be cleaned before sowing in a suitable nursery bed.</li>
+                        <li><strong>Transplanting:</strong> Seedlings can be transplanted to the field when they have
+                            developed strong roots and healthy leaves. Trees grown from seeds may differ in their growth
+                            rate and fruiting time.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Watering and Fertilization
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Watering:</strong> Young seedlings need regular watering to keep the soil
+                            sufficiently moist. However, excessive watering should be avoided because waterlogged soil
+                            can damage the roots.</li>
+                        <li><strong>Fertilization:</strong> Well-decomposed organic manure or compost can be added to
+                            improve soil fertility. The amount of fertilizer should be adjusted according to the soil
+                            condition and the age of the tree.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Pest and Disease Management
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>The leaves, branches, and fruits should be inspected regularly for signs of pests and
+                            diseases.</li>
+                        <li>Damaged or infected plant parts should be removed when necessary. The area around the tree
+                            should be kept clean, and good air circulation should be maintained.</li>
+                        <li>Proper drainage is also important to reduce the risk of root diseases.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Fruit Harvesting and Uses</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Pin-sein trees produce fruits after reaching the appropriate stage of growth. The harvesting
+                            season and fruiting period may vary depending on the variety and local climate.</li>
+                        <li>Mature fruits can be collected and used in traditional foods. Pin-sein is a useful local
+                            fruit that contributes to the food culture of communities in mountainous regions.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Conclusion</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Pin-sein is a fruit-bearing tree that grows in mountainous regions and provides fruits used
+                            in local cuisine. Successful cultivation requires suitable soil, proper watering, adequate
+                            nutrients, and regular pest and disease management.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกปินเซน (Crab Apple)</h1>
+                <p class="text-xl text-brand-600 font-semibold">แนวปฏิบัติทางการเกษตรที่ดี (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple1.jpg') }}" alt="Crab Apple Tree"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Tree'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple2.jpg') }}" alt="Crab Apple Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple3.jpg') }}"
+                        alt="Crab Apple Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: บทนำและสภาพอากาศ</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>บทนำ:</strong> ปินเซน (Docynia indica) เป็นไม้ผลที่พบในพื้นที่ภูเขาของเมียนมาร์
+                            รวมถึงบางส่วนของรัฐฉาน เป็นตระกูลกุหลาบ ผลมีลักษณะกลม เปลี่ยนจากสีเขียวเป็นสีเหลืองเมื่อสุก
+                            มีรสเปรี้ยว นิยมใช้ในอาหารท้องถิ่น</li>
+                        <li><strong>สภาพอากาศ:</strong> เจริญเติบโตในพื้นที่ภูเขา
+                            ควรเลือกทำเลที่มีแสงแดดเพียงพอและระบายอากาศดี
+                            ดินที่อุดมสมบูรณ์และระบายน้ำได้ดีช่วยให้รากพัฒนา หลีกเลี่ยงพื้นที่ที่มีน้ำขังรอบราก</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: วิธีการปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การขยายพันธุ์:</strong> ขยายพันธุ์ด้วยเมล็ด
+                            เมล็ดจากผลสุกควรทำความสะอาดก่อนหว่านในแปลงเพาะที่เหมาะสม</li>
+                        <li><strong>การย้ายปลูก:</strong> ย้ายต้นกล้าลงแปลงเมื่อมีรากที่แข็งแรงและใบที่สมบูรณ์
+                            ต้นที่โตจากเมล็ดอาจมีอัตราการเติบโตและเวลาในการออกผลที่แตกต่างกัน</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การให้น้ำและการใส่ปุ๋ย
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การให้น้ำ:</strong> ต้นกล้าต้องการน้ำสม่ำเสมอเพื่อให้ดินชื้นเพียงพอ
+                            หลีกเลี่ยงการให้น้ำมากเกินไปเพราะดินที่น้ำท่วมขังจะทำลายราก</li>
+                        <li><strong>การใส่ปุ๋ย:</strong>
+                            ใส่ปุ๋ยคอกหรือปุ๋ยหมักที่ย่อยสลายดีแล้วเพื่อปรับปรุงความอุดมสมบูรณ์ของดิน
+                            ปริมาณปุ๋ยควรปรับตามสภาพดินและอายุของต้นไม้</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4: การจัดการศัตรูพืชและโรค
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ตรวจสอบใบ กิ่ง และผลเป็นประจำเพื่อหาสัญญาณของศัตรูพืชและโรค</li>
+                        <li>กำจัดส่วนที่เสียหายหรือติดเชื้อเมื่อจำเป็น รักษาความสะอาดรอบต้นไม้และรักษาการระบายอากาศที่ดี
+                        </li>
+                        <li>การระบายน้ำที่ดีเป็นสิ่งสำคัญในการลดความเสี่ยงของโรคที่เกิดจากราก</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5:
+                        การเก็บเกี่ยวและการใช้ประโยชน์</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ต้นปินเซนจะออกผลหลังจากถึงระยะการเจริญเติบโตที่เหมาะสม
+                            ฤดูเก็บเกี่ยวและระยะเวลาออกผลอาจแตกต่างกันไปตามสายพันธุ์และสภาพอากาศท้องถิ่น</li>
+                        <li>ผลสุกสามารถเก็บและนำไปใช้ในอาหารพื้นบ้านได้
+                            ปินเซนเป็นผลไม้ท้องถิ่นที่มีประโยชน์และมีส่วนช่วยในวัฒนธรรมอาหารของชุมชนบนภูเขา</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6: บทสรุป</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>ปินเซนเป็นไม้ผลที่ปลูกในพื้นที่ภูเขาและให้ผลไม้ที่ใช้ในอาหารท้องถิ่น
+                            การปลูกให้ประสบความสำเร็จต้องใช้ดินที่เหมาะสม การรดน้ำที่ถูกต้อง สารอาหารที่เพียงพอ
+                            และการจัดการศัตรูพืชและโรคอย่างสม่ำเสมอ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">多依果（Pin-sein）种植综合指南</h1>
+                <p class="text-xl text-brand-600 font-semibold">良好农业规范 (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple1.jpg') }}" alt="Crab Apple Tree"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Tree'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple2.jpg') }}" alt="Crab Apple Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple3.jpg') }}"
+                        alt="Crab Apple Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Crab+Apple+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple5.jpg') }}" alt="Growing"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Growing'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/crab_apple6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/d97706/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：简介与气候</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>简介：</strong>多依果（Docynia
+                            indica）是缅甸山区（包括掸邦部分地区）常见的一种果树，属于蔷薇科。果实通常呈圆形，成熟时由绿色变为黄色。味道酸，常用于当地食物，如沙拉、传统水果拼盘和汤。</li>
+                        <li><strong>气候：</strong>生长在山区。建议选择阳光充足、通风良好的地方。排水良好、肥沃的土壤有助于根系发育。避免根部周围积水的区域。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：种植方法</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>繁殖：</strong>可通过种子繁殖。从成熟果实中收集的种子应在播种前清理干净，播入合适的苗床。</li>
+                        <li><strong>移栽：</strong>当幼苗长出强壮的根和健康的叶子时，即可移栽到大田。种子长出的树木在生长速度和结果时间上可能有所不同。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：浇水与施肥</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>浇水：</strong>幼苗需要定期浇水以保持土壤足够湿润。但是，应避免过度浇水，因为积水会损害根系。</li>
+                        <li><strong>施肥：</strong>可加入充分腐熟的有机肥或堆肥以提高土壤肥力。施肥量应根据土壤条件和树龄进行调整。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：病虫害管理</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>定期检查叶片、枝条和果实是否有病虫害迹象。</li>
+                        <li>必要时清除受损或受感染的植物部分。保持树木周围环境清洁，并保持良好的空气流通。</li>
+                        <li>良好的排水对于降低根腐病的风险也很重要。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：果实采收与用途</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>多依果树在达到适当的生长阶段后开始结果。采收季节和结果期可能因品种和当地气候而异。</li>
+                        <li>成熟的果实可以采摘并用于传统食物。多依果是一种有用的当地水果，有助于山区社区的饮食文化。</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：结论</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>多依果是一种生长在山区、果实可用于当地美食的果树。成功种植需要合适的土壤、适当的浇水、充足的养分以及定期的病虫害管理。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/crab_apple')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

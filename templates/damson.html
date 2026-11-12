@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>မက်မန်းသီး စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ မက်မန်းခင်းပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1595054055726-7e1b4e7b3f4f?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #8b4513;
+            /* မက်မန်းသီးအရောင် (Brown) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">မက်မန်းသီး စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider (ပုံ ၆ ပုံ) -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson1.jpg') }}" alt="Damson Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson2.jpg') }}" alt="Damson Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson3.jpg') }}" alt="Damson Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson5.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မျိုးပွားခြင်းနှင့်
+                        ပျိုးပင်ရွေးချယ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>မက်မန်းပင်ကို အစေ့မှစိုက်လျှင် သားမြုံတတ်ပြီး အသီးသီးရန် ကြာမြင့်တတ်သောကြောင့်
+                            အဖူးမြှုပ်ပင်၊ ကိုင်းဆက်ပင် သို့မဟုတ် မြေထုပ်စည်းနည်းဖြင့် မျိုးပွားထားသော ပျိုးပင်များကိုသာ
+                            မဖြစ်မနေ ရွေးချယ်စိုက်ပျိုးရပါမည်။</li>
+                        <li><strong>မြေထုပ်စည်းနည်း:</strong> ကျပ်လုံးခန့်ရှိသော ကိုင်းများတွင် အပေါ်ခွံ (၁) လက်မခန့်
+                            ခွာပြီး မြေဆွေးအုံကာ အုန်းဆံခွံ သို့မဟုတ် ပလတ်စတစ်တိတ်ဖြင့် စည်းထားပါ။ ရက်ပေါင်း ၄၀ မှ ၆၀
+                            ကြာ၍ အမြစ်ထွက်လာလျှင် အောက်ခြေမှ ဖြတ်ကာ ပျိုးထုပ်လုပ်နိုင်သည်။</li>
+                        <li><strong>ပျိုးပင်အဆင့်:</strong> စိုက်ပျိုးရန်အတွက် (၁) နှစ်သား သို့မဟုတ် (၂) နှစ်သား ရှိ
+                            ကျန်းမာသန်စွမ်းသော အဖူးမြှုပ်/ကိုင်းဆက် ပျိုးပင်များကို အသုံးပြုပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - စိုက်ကျင်းတူးခြင်းနှင့်
+                        မြေပြုပြင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ကွင်းအကွာအဝေး:</strong> အပင်အချင်းချင်း လေဝင်လေထွက်နှင့် နေရောင်ခြည်
+                            မျှတစွာရရှိစေရန် ၂၀ ပေ × ၂၀ ပေ (သို့မဟုတ်) ၂၄ ပေ × ၂၄ ပေ အကွာအဝေးစနစ်ဖြင့် အကွက်ချပါ။</li>
+                        <li><strong>စိုက်ကျင်းအရွယ်အစား:</strong> အလျား၊ အနံ၊ အနက် (၂ ပေ × ၂ ပေ × ၂ ပေ) ရှိ
+                            စိုက်ကျင်းများကို ကြိုတင်တူးထားရပါမည်။</li>
+                        <li><strong>မြေခံစပ်နည်း:</strong> တူးထုတ်ထားသော အပေါ်ယံမြေသားကို နွားချေးဆွေး (သို့မဟုတ်)
+                            ကွန်ပိုစ့်မြေဆွေး၊ တီကောင်ချေး၊ အရိုးမှုန့်များဖြင့် သေချာစွာ သမအောင် စပ်ပေးပြီး ကျင်းထဲသို့
+                            ပြန်လည်ဖို့ပေးထားပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - ပျိုးပင်စိုက်ပျိုးခြင်း
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးချိန်:</strong> မိုးဦး/မိုးလယ်ကာလ ဖြစ်သော ဇူလိုင်လနှင့် ဩဂုတ်လတို့သည်
+                            စိုက်ပျိုးရန် အကောင်းဆုံးအချိန်ဖြစ်သည်။</li>
+                        <li><strong>စိုက်ပျိုးနည်း:</strong> ဖို့ထားသော မြေကျင်းအလယ်တွင် ပျိုးအိတ်အရွယ်အစားခန့်
+                            ကျင်းပြန်တူးပါ။ ပျိုးပင်၏ အမြစ်များကို လိုသလောက်ချန်ပြီး ရှုပ်ထွေးနေသော ထိပ်ဖျားမြစ်များကို
+                            အနည်းငယ် ဖြတ်တောက်ပေးပါ။ ပျိုးပလတ်စတစ်အိတ်ကို ဓားဖြင့် သေချာခွာ၍ မြေလုံးမပျက်စေဘဲ
+                            ကျင်းအလယ်တွင် တည့်တည့်စိုက်ပြီး မြေကျစ်ကျစ် ဖိပေးရပါမည်။ စိုက်ပြီးလျှင် အပင်ခြေကို
+                            ရေဝပ်ခြင်းမရှိစေရန် ခုံးခုံးလေး ဖြစ်အောင် မြေဖို့ပေးပြီး ရေဝတိုက်အောင် လောင်းပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - အပင်ပုံသွင်းခြင်းနှင့်
+                        ကိုင်းဖြတ်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>မက်မန်းပင်သည် ကိုင်းအခက်အလက် အလွန်များသော ချုံပင်မျိုးဖြစ်၍ စနစ်တကျ ကိုင်းမဖြတ်လျှင်
+                            အသီးတင်မှု နည်းသွားတတ်သည်။</li>
+                        <li><strong>ပထမအဆင့်:</strong> စိုက်ပျိုးချိန်တွင် ပင်မပင်စည်မှ ထွက်နေသော ပထမဘေးကိုင်း (၃)
+                            ကိုင်းကိုသာ ရွေးချယ်ချန်လှပ်ထားပြီး ကျန်ကိုင်းများကို ဖြတ်ထုတ်ပါ။ ချန်ထားသော
+                            ဘေးကိုင်းများကိုလည်း အရှည် ၂၀ လက်မထက် မပိုစေဘဲ ထိပ်ဖျားမှ ဖြတ်ပေးရမည်။</li>
+                        <li><strong>ပုံသွင်းခြင်း:</strong> အသီးမသီးမီ ကာလတစ်လျှောက်လုံးတွင် အပင်အလယ်ခေါင်
+                            လေဝင်လေထွက်ကောင်းရန်နှင့် နေရောင်ခြည် အောက်ခြေအထိ ရောက်ရန်အတွက် အတွင်းဘက်သို့ ခွင်ဝင်နေသော
+                            ကိုင်းများ၊ ကိုင်းနာများကို ပုံမှန် ရှင်းလင်းပေးရပါမည်။</li>
+                        <li><strong>သတိပြုရန်:</strong> မက်မန်းပင်သည် ၂ နှစ်သားနှင့် ၎င်းအထက်ရှိသော ကိုင်းရင့်များတွင်သာ
+                            အပွင့်ပွင့်ပြီး အသီးသီးလေ့ရှိသည်။ အထူးသဖြင့် ကိုင်းရှည်ကြီးများ၏ ထိပ်ဖျားပိုင်း ၂ ပေ၊ ၃ ပေ
+                            ဝန်းကျင်တွင် အသီးပိုမိုသီးတတ်သဖြင့် ကိုင်းရင့်များကို အလွန်အကျွံ ဖြတ်တောက်ခြင်းမျိုး
+                            မပြုလုပ်ရပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - ရေပေးသွင်းခြင်းနှင့်
+                        မြေသြဇာကျွေးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေပေးသွင်းခြင်း:</strong> စိုက်ပျိုးပြီး ပထမတစ်နှစ်အတွင်း ပျိုးပင်ငယ်စဉ်တွင်
+                            တစ်ပတ်လျှင် တစ်ကြိမ် ပုံမှန်ရေလောင်းပေးရန် လိုအပ်သည်။ အပင်ကြီးလာသောအခါ အပွင့်ပွင့်ချိန်နှင့်
+                            အသီးတင်ချိန်များတွင် ရေကို ပိုမိုလိုအပ်ပြီး အသီးများများတင်လျှင် ရေကို ပိုမိုဂရုစိုက်
+                            ကျွေးရပါမည်။</li>
+                        <li><strong>မြေသြဇာကျွေးခြင်း:</strong> အပင်ကြီးတစ်ပင်အတွက် အသီးထွက် အကောင်းဆုံးဖြစ်စေရန်
+                            ယူရီးယား (N) မြေသြဇာ ၁.၇၅ ပေါင်မှ ၃ ပေါင်အထိ နှင့် ပိုတက်ရှ် (K) မြေသြဇာ ၂.၂၅ ပေါင်ခန့်ကို
+                            ခွဲ၍ ကျွေးပေးရပါမည်။ ထို့ပြင် ကယ်လ်စီယမ်ဓာတ် ကြိုက်နှစ်သက်သောကြောင့် ကယ်လ်စီယမ်ပါဝင်သော
+                            ဓာတ်မြေသြဇာများနှင့် အရိုးမှုန့်များကို နှစ်စဉ် မဖြစ်မနေ ဖြည့်စွက်ကျွေးပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) - အသီးဆွတ်ခူးခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>စနစ်တကျ ပြုစုစောင့်ရှောက်ထားသော ကိုင်းဆက်/အဖူးမြှုပ် မက်မန်းပင်များသည် စိုက်ပျိုးပြီး ၂
+                            နှစ်မှ ၄ နှစ်အတွင်း စတင်၍ အသီးများ ခူးဆွတ်နိုင်ပြီဖြစ်ပြီး ၅ နှစ်သားကျော်လျှင် အထွက်နှုန်း
+                            အပြည့်အဝ ရရှိနိုင်ပါသည်။</li>
+                        <li>ပုံမှန်အားဖြင့် ရာသီဥတုပေါ်မူတည်၍ မေလနှင့် ဇွန်လတို့တွင် အသီးများ ရင့်မှည့်ကာ
+                            ဆွတ်ခူးလေ့ရှိကြသည်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Damson
+                    Cultivation</h1>
+                <p class="text-xl text-brand-600 font-semibold">Good Agricultural Practices (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson1.jpg') }}" alt="Damson Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson2.jpg') }}" alt="Damson Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson3.jpg') }}" alt="Damson Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson5.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Propagation and Seedling
+                        Selection</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Growing from seed leads to long juvenile periods and delayed fruiting. It is mandatory to
+                            use grafted, budded, or air-layered seedlings.</li>
+                        <li><strong>Air-layering (Marcotting):</strong> Remove a 1-inch ring of bark on a pencil-thick
+                            branch, apply moist compost, wrap with coconut coir or plastic, and tie securely. Roots
+                            appear in 40-60 days; cut below the roots to create a new plant.</li>
+                        <li><strong>Seedling Stage:</strong> Use healthy 1 to 2-year-old budded/grafted seedlings for
+                            planting.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Digging Holes and Soil Prep
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Spacing:</strong> To ensure good air circulation and sunlight, use 20 ft × 20 ft
+                            (or) 24 ft × 24 ft spacing.</li>
+                        <li><strong>Hole Size:</strong> Pre-dig planting holes of 2 ft × 2 ft × 2 ft.</li>
+                        <li><strong>Soil Mix:</strong> Mix the excavated topsoil thoroughly with decomposed cow manure
+                            (or) compost, vermicompost, and bone meal. Backfill the hole with this mixture.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Planting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Timing:</strong> Early to mid-monsoon (July and August) is the best time for
+                            planting.</li>
+                        <li><strong>Method:</strong> Dig a small hole the size of the polybag in the center of the
+                            backfilled pit. Trim tangled root tips slightly. Carefully cut and remove the plastic bag
+                            without breaking the root ball. Plant straight in the center and firm the soil. Shape the
+                            base into a slight mound to prevent waterlogging and water thoroughly.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Training and Pruning</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Damson is a highly branched bushy plant. Without systematic pruning, fruit set decreases.
+                        </li>
+                        <li><strong>Initial Pruning:</strong> At planting, select only 3 primary lateral branches from
+                            the main trunk and remove the rest. Cut the retained branches to a maximum length of 20
+                            inches.</li>
+                        <li><strong>Training:</strong> Before fruiting, regularly remove inward-growing branches and
+                            damaged branches to keep the center open for airflow and allow sunlight to reach the base.
+                        </li>
+                        <li><strong>Note:</strong> Damsons flower and bear fruit mainly on 2-year-old and older wood.
+                            Since fruits are concentrated near the tips (2-3 ft) of long branches, avoid excessive
+                            pruning of mature wood.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Irrigation and Fertilization
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Irrigation:</strong> During the first year, water young plants once a week. Mature
+                            trees need more water during flowering and fruit set. Increase watering if the fruit load is
+                            heavy.</li>
+                        <li><strong>Fertilization:</strong> For optimal yield per mature tree, apply 1.75 to 3 lbs of
+                            Urea (N) and about 2.25 lbs of Potash (K) in split doses. Since it prefers calcium, annually
+                            supplement with calcium fertilizers and bone meal.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Harvesting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>Well-managed grafted/budded damsons start bearing fruit 2 to 4 years after planting,
+                            reaching full yield after 5 years.</li>
+                        <li>Fruits typically ripen and are harvested in May and June, depending on the weather.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกแดมสัน (Damson)</h1>
+                <p class="text-xl text-brand-600 font-semibold">แนวปฏิบัติทางการเกษตรที่ดี (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson1.jpg') }}" alt="Damson Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson2.jpg') }}" alt="Damson Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson3.jpg') }}" alt="Damson Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson5.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1:
+                        การขยายพันธุ์และการเลือกต้นกล้า</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>การปลูกจากเมล็ดทำให้ระยะวัยเยาว์ยาวนานและออกผลช้า จำเป็นต้องใช้ต้นกล้าที่ตอนกิ่ง ทาบกิ่ง
+                            หรือติดตา</li>
+                        <li><strong>การตอนกิ่ง:</strong> ลอกเปลือกกว้าง 1 นิ้วบนกิ่งขนาดดินสอ ทาปุ๋ยหมักเปียก
+                            ห่อด้วยกาบมะพร้าวหรือพลาสติกและมัดให้แน่น รากจะงอกใน 40-60 วัน ตัดใต้รากเพื่อสร้างต้นใหม่
+                        </li>
+                        <li><strong>ระยะต้นกล้า:</strong> ใช้ต้นกล้าที่ติดตาหรือทาบกิ่งที่แข็งแรงอายุ 1 ถึง 2
+                            ปีในการปลูก</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2:
+                        การขุดหลุมและการเตรียมดิน</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ระยะปลูก:</strong> เพื่อให้มีการระบายอากาศและแสงแดดที่ดี ใช้ระยะ 20 ฟุต × 20 ฟุต
+                            (หรือ) 24 ฟุต × 24 ฟุต</li>
+                        <li><strong>ขนาดหลุม:</strong> ขุดหลุมปลูกขนาด 2 ฟุต × 2 ฟุต × 2 ฟุต ล่วงหน้า</li>
+                        <li><strong>การผสมดิน:</strong> ผสมดินชั้นบนที่ขุดขึ้นมากับมูลวัวที่ย่อยสลายแล้ว (หรือ) ปุ๋ยหมัก
+                            ปุ๋ยมูลไส้เดือน และปุ๋ยกระดูกให้เข้ากัน แล้วกลบหลุมด้วยส่วนผสมนี้</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3: การปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>เวลาปลูก:</strong> ต้นถึงกลางฤดูมรสุม (กรกฎาคมและสิงหาคม)
+                            เป็นเวลาที่ดีที่สุดในการปลูก</li>
+                        <li><strong>วิธีการ:</strong> ขุดหลุมเล็กๆ ขนาดเท่าถุงพลาสติกตรงกลางหลุมที่กลบไว้
+                            ตัดปลายรากที่พันกันเล็กน้อย ตัดและเอาถุงพลาสติกออกอย่างระมัดระวังโดยไม่ให้ก้อนรากแตก
+                            ปลูกตรงกลางและกดดินให้แน่น ทำโคนให้เป็นเนินเล็กน้อยเพื่อป้องกันน้ำท่วมขังและรดน้ำให้ชุ่ม
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4:
+                        การฝึกทรงพุ่มและการตัดแต่งกิ่ง</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>แดมสันเป็นพืชพุ่มที่แตกกิ่งก้านมาก หากไม่ตัดแต่งอย่างเป็นระบบการติดผลจะลดลง</li>
+                        <li><strong>การตัดแต่งครั้งแรก:</strong> เมื่อปลูก ให้เลือกกิ่งข้างหลักเพียง 3
+                            กิ่งจากลำต้นหลักและตัดส่วนที่เหลือออก ตัดกิ่งที่เก็บไว้ให้มีความยาวสูงสุด 20 นิ้ว</li>
+                        <li><strong>การฝึกทรงพุ่ม:</strong> ก่อนออกผล
+                            ให้กำจัดกิ่งที่ชี้เข้าด้านในและกิ่งที่เสียหายเป็นประจำเพื่อให้กลางต้นโปร่งสำหรับการระบายอากาศและให้แสงแดดส่องถึงโคน
+                        </li>
+                        <li><strong>หมายเหตุ:</strong> แดมสันออกดอกและติดผลบนกิ่งที่มีอายุ 2 ปีขึ้นไป
+                            เนื่องจากผลกระจุกตัวอยู่ใกล้ปลายกิ่ง (2-3 ฟุต) ของกิ่งยาว
+                            หลีกเลี่ยงการตัดแต่งกิ่งแก่ที่มากเกินไป</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5: การให้น้ำและการใส่ปุ๋ย
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การให้น้ำ:</strong> ในปีแรก รดน้ำต้นอ่อนสัปดาห์ละครั้ง
+                            ต้นที่โตเต็มที่ต้องการน้ำมากขึ้นในช่วงออกดอกและติดผล เพิ่มการรดน้ำหากมีผลดก</li>
+                        <li><strong>การใส่ปุ๋ย:</strong> เพื่อผลผลิตที่เหมาะสมที่สุดต่อต้นที่โตเต็มที่ ให้ใส่ปุ๋ยยูเรีย
+                            (N) 1.75 ถึง 3 ปอนด์ และโพแทช (K) ประมาณ 2.25 ปอนด์ แบ่งใส่เป็นระยะ เนื่องจากชอบแคลเซียม
+                            ให้เสริมด้วยปุ๋ยแคลเซียมและปุ๋ยกระดูกเป็นประจำทุกปี</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6: การเก็บเกี่ยว</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>แดมสันที่ทาบกิ่ง/ติดตาที่ได้รับการจัดการอย่างดีจะเริ่มออกผล 2 ถึง 4 ปีหลังปลูก
+                            และให้ผลผลิตเต็มที่หลังจาก 5 ปี</li>
+                        <li>โดยทั่วไปผลจะสุกและเก็บเกี่ยวได้ในเดือนพฤษภาคมและมิถุนายน ขึ้นอยู่กับสภาพอากาศ</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">西洋李（Damson）种植综合指南</h1>
+                <p class="text-xl text-brand-600 font-semibold">良好农业规范 (GAP)</p>
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson1.jpg') }}" alt="Damson Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson2.jpg') }}" alt="Damson Fruits"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Fruits'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson3.jpg') }}" alt="Damson Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Damson+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson5.jpg') }}" alt="Pruning"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Pruning'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/damson6.jpg') }}" alt="Harvest"
+                        onerror="this.src='https://via.placeholder.com/1200x600/8b4513/ffffff?text=Harvest'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：繁殖与选苗</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>用种子种植会导致幼年期长且结果延迟。必须使用嫁接、芽接或压条繁殖的幼苗。</li>
+                        <li><strong>压条繁殖：</strong>在铅笔粗的枝条上环剥1英寸树皮，涂抹湿润堆肥，用椰糠或塑料包裹并扎紧。40-60天生根；在根部下方剪下以培育新植株。</li>
+                        <li><strong>幼苗阶段：</strong>使用健康的1至2年生芽接/嫁接幼苗进行种植。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：挖穴与整地</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>株行距：</strong>为确保良好的空气流通和光照，采用20英尺×20英尺（或）24英尺×24英尺的间距。</li>
+                        <li><strong>穴大小：</strong>预先挖好2英尺×2英尺×2英尺的种植穴。</li>
+                        <li><strong>土壤混合：</strong>将挖出的表土与腐熟的牛粪（或）堆肥、蚯蚓粪和骨粉充分混合。用此混合物回填种植穴。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：定植</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>时间：</strong>季风初期至中期（7月和8月）是种植的最佳时间。</li>
+                        <li><strong>方法：</strong>在回填坑的中心挖一个塑料袋大小的洞。稍微修剪缠绕的根尖。小心切开并取下塑料袋，不要弄碎土球。直立种植在中心并压实土壤。将基部做成微小的土丘以防积水，并浇透水。
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：整形与修剪</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>西洋李是一种分枝繁茂的灌木植物。如果不进行系统修剪，坐果率会下降。</li>
+                        <li><strong>初次修剪：</strong>种植时，仅保留主干上的3个主要侧枝，其余全部去除。将保留的枝条剪至最长20英寸。</li>
+                        <li><strong>整形：</strong>结果前，定期去除向内生长的枝条和受损枝条，保持中心敞开以利通风，并让阳光照射到基部。</li>
+                        <li><strong>注意：</strong>西洋李主要在2年生及更老的枝条上开花结果。由于果实集中在长枝的尖端附近（2-3英尺），避免过度修剪老枝。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：灌溉与施肥</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>灌溉：</strong>第一年每周给幼树浇水一次。成年树在开花和坐果期需要更多水分。如果挂果量大，增加浇水。</li>
+                        <li><strong>施肥：</strong>为使每棵成年树获得最佳产量，分次施用1.75至3磅尿素（N）和约2.25磅钾肥（K）。由于它喜钙，每年补充钙肥和骨粉。</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：收获</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li>管理良好的嫁接/芽接西洋李在种植后2至4年开始结果，5年后达到盛产期。</li>
+                        <li>根据天气情况，果实通常在5月和6月成熟并采收。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/damson')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>

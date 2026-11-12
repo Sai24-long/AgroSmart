@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="my">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ရော်ဘာ စိုက်ပျိုးနည်း | AgroSmart</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=Inter:wght@400;600;800&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+Thai:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 500: '#10b981', 600: '#059669', 700: '#047857' } },
+                    fontFamily: {
+                        sans: ['Inter', 'Padauk', 'Noto Sans SC', 'Noto Sans Thai', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 🎨 နောက်ခံ ရော်ဘာခြံပုံ နှင့် ဖောက်ထွင်းမြင်ရသော အကျိုးသက်ရောက်မှု */
+        body {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.85)), url('https://images.unsplash.com/photo-1599384028238-ecde8c71a4d1?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .lang-content {
+            display: none;
+        }
+
+        .lang-content.active {
+            display: block;
+        }
+
+        /* ပုံတွေ ဘေးတိုက်ရွေ့ဖို့ Slider ပုံစံ */
+        .image-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            gap: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-slider::-webkit-scrollbar {
+            display: none;
+        }
+
+        .slider-item {
+            flex: 0 0 98%;
+            scroll-snap-align: center;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            height: 400px;
+            position: relative;
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* စာသား အဆင့်တွေ ပေါ်လာတဲ့ Animation */
+        .step-card {
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+            border-left: 5px solid #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .step-card.active {
+            opacity: 1;
+            transform: translateY(0);
+            border-left-color: #4b5563;
+            /* ရော်ဘာအရောင် (Gray/Dark Green) */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile မှာ Slider ပုံကို နည်းနည်းချုံ့မယ် */
+        @media (max-width: 640px) {
+            .slider-item {
+                flex: 0 0 95%;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-gray-800 font-sans antialiased text-lg leading-relaxed">
+
+    <!-- Navigation -->
+    <nav class="glass-card sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-brand-600">AgroSmart KyaingTong</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <select id="langSelect" onchange="changeLanguage()"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-brand-500 focus:border-brand-500 block p-2 outline-none">
+                    <option value="my">မြန်မာ (Myanmar)</option>
+                    <option value="en">English</option>
+                    <option value="th">ไทย (Thai)</option>
+                    <option value="cn">中文 (Chinese)</option>
+                </select>
+                <a href="/"
+                    class="flex items-center gap-2 text-base font-semibold text-gray-600 hover:text-brand-600 transition">ပင်မစာမျက်နှာသို့ပြန်သွားရန်</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+
+        <!-- 📥 PDF ဒေါင်းလုဒ် ခလုတ် (Admin မှ တင်ထားသော ဖိုင်ကို ဒေါင်းလုဒ်ဆွဲမည်) -->
+        <div id="pdfDownloadSection" class="flex justify-end mb-4 hidden">
+            <a id="downloadPdfLink" href="#" target="_blank"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-md transition flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                PDF ဒေါင်းလုဒ်ဆွဲရန်
+            </a>
+        </div>
+
+        <!-- ဘာသာစကား ရွေးချယ်မှု ခလုတ် (Mobile အတွက် လွယ်အောင်) -->
+        <div class="flex justify-center mb-6 md:hidden">
+            <select id="langSelectMobile" onchange="changeLanguage()"
+                class="bg-white border border-gray-300 text-gray-900 text-base rounded-lg p-2">
+                <option value="my">မြန်မာ</option>
+                <option value="en">English</option>
+                <option value="th">ไทย</option>
+                <option value="cn">中文</option>
+            </select>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၁။ မြန်မာဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-my" class="lang-content active">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">ရော်ဘာ စိုက်ပျိုးနည်း အဆင့်ဆင့်
+                </h1>
+
+                </p>
+            </div>
+
+            <!-- Horizontal Image Slider (ပုံ ၈ ပုံ) -->
+            <div class="image-slider mb-10" id="slider-my">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber1.jpg') }}" alt="Rubber Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber2.jpg') }}" alt="Rubber Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber3.jpg') }}" alt="Land Preparation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Land+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber5.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Irrigation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber6.jpg') }}" alt="Fertilizer"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Fertilizer'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber7.jpg') }}" alt="Weed Control"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Weed+Control'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/robber8.jpg') }}" alt="Latex Tapping"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Latex+Tapping'">
+                </div>
+            </div>
+
+            <!-- စာသားအဆင့်တွေ -->
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၁) - မြေအမျိုးအစားနှင့် ရာသီဥတု
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေအမျိုးအစား:</strong> ရေစီးရေလေကောင်းမွန်ပြီး အစိုဓာတ်ထိန်းနိုင်သော
+                            မြေနက်ပိုင်းတွင် ကောင်းစွာဖြစ်ထွန်းသည်။ နုန်းနှင့် နုန်းစနယ်မြေများ သင့်တော်သည်။
+                            ရေဝပ်လွယ်သော၊ မြေကျစ်သော၊ ကျောက်ထူသောမြေများကို ရှောင်ကြဉ်ပါ။</li>
+                        <li><strong>ရာသီဥတု:</strong> ပူနွေးစိုစွတ်သော အပူပိုင်းရာသီဥတုကို နှစ်သက်သည်။ အလွန်အေးခြင်း၊
+                            ရေရှားပါးခြင်းနှင့် လေပြင်းတိုက်ခတ်ခြင်းများက အထွက်နှုန်းကို ထိခိုက်စေနိုင်သည်။
+                            ဒေသရာသီဥတုနှင့် ကိုက်ညီသော မျိုးကို ရွေးချယ်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၂) - စိုက်ပျိုးချိန်နှင့်
+                        မြေပြုပြင်ခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>စိုက်ပျိုးချိန်:</strong> မိုးရာသီအစပိုင်းတွင် စိုက်ပျိုးခြင်းက အမြစ်စွဲလွယ်စေပြီး
+                            ရေဓာတ်လုံလောက်စေသည်။ စိုက်ချိန်တွင် မြေစိုစွတ်နေစေရမည်၊ သို့သော် ရေမဝပ်စေရန် သေချာစစ်ဆေးပါ။
+                            မိုးရေမမှန်သောဒေသများတွင် ရေပေးသွင်းရန် စီမံပါ။</li>
+                        <li><strong>မြေပြုပြင်ခြင်း:</strong> စိုက်မည့်နေရာကို ကြိုတင်ရှင်းလင်းပြီး ပေါင်းမြက်များ
+                            ဖယ်ရှားပါ။ တောင်စောင်းများတွင် မြေတိုက်စားမှုကို ကာကွယ်ရန် ကွန်တိုအတန်းများ ဖော်ပါ။
+                            ကျင်းတူးပြီး မြေဆွေးများ ရောစပ်ပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၃) - ပျိုးပင်ရွေးချယ်ခြင်းနှင့်
+                        စိုက်နည်းစနစ်</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပျိုးပင်ရွေးချယ်ခြင်း:</strong> ကျန်းမာသန်စွမ်းပြီး ရောဂါကင်းသော ပျိုးပင်များကို
+                            ရွေးချယ်ပါ။ ပင်စည်တည့်မတ်မှု၊ အမြစ်အခြေအနေနှင့် အရွက်ကျန်းမာမှုကို စစ်ဆေးပါ။ ပျက်စီးနေသော
+                            ပျိုးပင်များကို မစိုက်သင့်ပါ။</li>
+                        <li><strong>စိုက်နည်းစနစ်:</strong> အတန်းကြားနှင့် အပင်ကြားအကွာအဝေးကို မျိုး၊ မြေအနေအထားနှင့်
+                            စီမံခန့်ခွဲမှုစနစ်အပေါ် မူတည်ပြီး သတ်မှတ်ပါ။ ပျိုးပင်ကို ကျင်းအလယ်တွင် မတ်မတ်ထားပြီး
+                            အမြစ်များ မကွေးစေရန် သတိပြုပါ။ မြေပြန်ဖို့ပြီး ရေလောင်းပေးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၄) - ရေပေးသွင်းခြင်းနှင့်
+                        အစိုဓာတ်ထိန်းသိမ်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ရေပေးသွင်းခြင်း:</strong> အမြစ်မစွဲသေးသော ပျိုးပင်များတွင် ရေလိုအပ်ပါသည်။
+                            မိုးရေမလုံလောက်ပါက ရေပေးသွင်းပါ။ သို့သော် ရေဝပ်ပါက အမြစ်ပုပ်နိုင်သဖြင့် ရေထွက်လမ်းကြောင်း
+                            ကောင်းမွန်စေရမည်။</li>
+                        <li><strong>အစိုဓာတ်ထိန်းခြင်း:</strong> အပင်ခြေတွင် မြက်ခြောက်၊ အရွက်ခြောက် သို့မဟုတ်
+                            သင့်တော်သော အော်ဂဲနစ်ဖုံးအုပ်ပစ္စည်းများ ခင်းပေးခြင်းဖြင့် အစိုဓာတ်ထိန်းနိုင်ပြီး
+                            ပေါင်းမြက်ထပ်မှုကို လျှော့ချနိုင်သည်။ ဖုံးအုပ်ပစ္စည်းကို ပင်စည်နှင့် တိုက်ရိုက်မကပ်စေရန်
+                            ချန်ထားပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၅) - မြေသြဇာကျွေးခြင်းနှင့်
+                        ပေါင်းမြက်နှိမ်နင်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>မြေသြဇာကျွေးခြင်း:</strong> မြေဆီလွှာစစ်ဆေးမှုရလဒ်၊ အပင်အသက်၊ အပင်ကြီးထွားမှုနှင့်
+                            ဒေသခံအကြံပြုချက်များအပေါ် မူတည်ပြီး မြေသြဇာအမျိုးအစားနှင့် ပမာဏကို သတ်မှတ်ပါ။ အပင်ခြေတွင်
+                            ညီညာစွာကျွေးပြီး ပင်စည်နှင့် တိုက်ရိုက်မထိစေရန် သတိပြုပါ။</li>
+                        <li><strong>ပေါင်းမြက်နှိမ်နင်းခြင်း:</strong> ပေါင်းမြက်များက ရေနှင့် အာဟာရကို
+                            ယှဉ်ပြိုင်စားသုံးသဖြင့် အပင်ခြေကို ရှင်းလင်းထားရန် အရေးကြီးသည်။ လက်ဖြင့်နုတ်ခြင်း၊
+                            ရိတ်ခြင်းနှင့် ဖုံးအုပ်ခြင်းတို့ ပြုလုပ်နိုင်သည်။ ပေါင်းသတ်ဆေးသုံးပါက ရော်ဘာခင်းအတွက်
+                            သီးသန့်မှတ်ပုံတင်ထားသော ဆေးများကိုသာ အညွှန်းအတိုင်း သုံးပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၆) -
+                        ပိုးမွှားရောဂါကာကွယ်ခြင်းနှင့် ပြုစုခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ပိုးမွှားရောဂါ:</strong> အရွက်ရောဂါ၊ အမြစ်ရောဂါနှင့် ပင်စည်ရောဂါများ
+                            ဖြစ်ပွားနိုင်သည်။ အရွက်အရောင်ပြောင်းခြင်း၊ အရွက်ကြွေခြင်း၊ အမြစ်ပုပ်ခြင်းနှင့် ပင်စည်တွင်
+                            အနာဖြစ်ခြင်းများကို ပုံမှန်စစ်ဆေးပါ။ ရောဂါဖြစ်နေသော အပင်အစိတ်အပိုင်းများကို ဖယ်ရှားပြီး
+                            ခင်းသန့်ရှင်းရေးကို ထိန်းသိမ်းပါ။</li>
+                        <li><strong>အပင်ပြုစုခြင်း:</strong> အပင်ငယ်စဉ်တွင် ပင်စည်တည့်မတ်စေရန် စောင့်ကြည့်ပါ။ ပျက်စီးသော
+                            အကိုင်းများကို လိုအပ်ပါက ချိုင်ပေးနိုင်သည်။ ရေစီးရေလာ၊ ပေါင်းမြက်၊ အပင်သေများနှင့်
+                            ပိုးမွှားလက္ခဏာများကို မှတ်တမ်းတင်ပါ။</li>
+                    </ul>
+                </div>
+                <!-- Step 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၇) - ရော်ဘာစေးထုတ်ယူခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>အသက်အရွယ်:</strong> ရော်ဘာပင်သည် စိုက်ပြီး နှစ်အတော်ကြာမှ စေးထုတ်ယူနိုင်သည့်
+                            အရွယ်သို့ ရောက်သည်။ အပင်အသက်တစ်ခုတည်းဖြင့် မဆုံးဖြတ်ဘဲ ပင်စည်အရယ်၊ အခေါက်အထူနှင့်
+                            စိုက်ခင်းစံနှုန်းများကို ထည့်သွင်းစဉ်းစားရမည်။</li>
+                        <li><strong>စေးထုတ်ယူခြင်း:</strong> အခေါက်ကို သတ်မှတ်ထားသော နည်းစနစ်အတိုင်း ဖြတ်တောက်ပြီး
+                            သစ်သားကို မထိခိုက်စေရန် သတိပြုပါ။ မမှန်ကန်သော စေးထုတ်နည်းသည် အခေါက်ပျက်စီးပြီး
+                            နောက်ပိုင်းအထွက်နှုန်းကို ကျဆင်းစေနိုင်သည်။ လေ့ကျင့်ထားသူ သို့မဟုတ် ကျွမ်းကျင်သူ၏
+                            လမ်းညွှန်မှုဖြင့် လုပ်ဆောင်သင့်သည်။</li>
+                    </ul>
+                </div>
+                <!-- Step 8 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="7">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">အဆင့် (၈) - ရော်ဘာစေးနှင့်
+                        ထုတ်ကုန်များ ကိုင်တွယ်သိမ်းဆည်းခြင်း</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>သိမ်းဆည်းခြင်း:</strong> ရော်ဘာစေးကို သန့်ရှင်းသော စုဆောင်းပုံးများဖြင့်
+                            စုဆောင်းပြီး မြေဆီ၊ အရွက်နှင့် အခြားအညစ်အကြေးများ မပါဝင်စေရန် သတိပြုပါ။
+                            စည်းမျဉ်းများနှင့်အညီ သယ်ယူပို့ဆောင်ပါ။</li>
+                        <li><strong>ထုတ်ကုန်ကိုင်တွယ်ခြင်း:</strong> ပြုပြင်ထုတ်လုပ်ရာတွင် အသုံးပြုသည့်
+                            အသုံးပြုပစ္စည်းများနှင့် ဓာတုပစ္စည်းများကို သက်ဆိုင်ရာ လုံခြုံရေးညွှန်ကြားချက်များအတိုင်း
+                            ကိုင်တွယ်ပါ။ မသိသော ဓာတုပစ္စည်းများကို မရောစပ်ပါနှင့်။</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၂။ အင်္ဂလိပ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-en" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">Comprehensive Guide to Rubber
+                    Cultivation</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-en">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber1.jpg') }}" alt="Rubber Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber2.jpg') }}" alt="Rubber Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber3.jpg') }}" alt="Land Preparation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Land+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber5.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Irrigation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber6.jpg') }}" alt="Fertilizer"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Fertilizer'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber7.jpg') }}" alt="Weed Control"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Weed+Control'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber8.jpg') }}" alt="Latex Tapping"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Latex+Tapping'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 1: Soil and Climate</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Soil:</strong> Thrives in deep, well-drained soils with good moisture retention.
+                            Loamy and silty loam soils with high organic matter are suitable. Avoid waterlogged,
+                            compacted, and very rocky soils.</li>
+                        <li><strong>Climate:</strong> Prefers a warm, humid tropical climate. Extremely low
+                            temperatures, water shortages, and strong winds can affect growth and latex yield. Choose
+                            varieties suited to local conditions.</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 2: Planting Time and Land
+                        Preparation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Planting Time:</strong> Planting at the start of the rainy season helps roots
+                            establish. Ensure soil is moist but not waterlogged. In irregular rainfall areas, plan for
+                            irrigation.</li>
+                        <li><strong>Land Prep:</strong> Clear the area and manage weeds. On slopes, use contour lines to
+                            prevent erosion. Dig holes suitable for the roots and mix with compost. Avoid direct contact
+                            with fresh manure.</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 3: Seedling Selection and
+                        Planting</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Seedling Selection:</strong> Choose healthy, disease-free seedlings or certified
+                            budded plants. Check stem uprightness, root condition, and leaf health.</li>
+                        <li><strong>Planting:</strong> Determine spacing based on variety, terrain, and management.
+                            Place the seedling upright in the hole, ensuring roots are not bent. Refill with soil, firm
+                            gently, and water.</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 4: Irrigation and Moisture
+                        Conservation</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Irrigation:</strong> Newly planted seedlings may need watering if rainfall is
+                            insufficient. Ensure good drainage to prevent root rot.</li>
+                        <li><strong>Mulching:</strong> Apply dry grass or leaves around the base to retain moisture and
+                            suppress weeds. Keep mulch away from the trunk.</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 5: Fertilization and Weed Control
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Fertilization:</strong> Base type and amount on soil tests, tree age, and local
+                            recommendations. Apply evenly near the root zone, avoiding direct contact with the trunk.
+                        </li>
+                        <li><strong>Weed Control:</strong> Keep the area around trees clear to reduce competition for
+                            water and nutrients. Use hand weeding, cutting, or mulching. If using herbicides, follow
+                            label instructions and avoid contact with rubber leaves/stems.</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 6: Pest/Disease Control and
+                        Maintenance</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Pests/Diseases:</strong> Monitor for leaf, root, and stem diseases (discoloration,
+                            leaf fall, rot, lesions). Remove affected parts and maintain plantation hygiene.</li>
+                        <li><strong>Maintenance:</strong> Monitor growth for straight trunks. Prune damaged branches if
+                            necessary. Keep records of drainage, weeds, dead trees, and pest signs. Replace dead
+                            seedlings promptly.</li>
+                    </ul>
+                </div>
+                <!-- Step 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 7: Latex Tapping</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Tapping Readiness:</strong> Trees become ready after several years. Do not rely
+                            solely on age; consider trunk size, bark thickness, and standards.</li>
+                        <li><strong>Tapping Process:</strong> Cut only the appropriate bark layer without damaging the
+                            wood. Incorrect tapping reduces future yield. Use trained workers or follow expert guidance.
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 8 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="7">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">Step 8: Handling and Storage</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>Latex Handling:</strong> Collect in clean containers, preventing contaminants like
+                            soil and leaves. Follow recommended transport practices.</li>
+                        <li><strong>Processing:</strong> Handle materials and chemicals according to safety
+                            instructions. Do not mix unidentified chemicals.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၃။ ထိုင်းဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-th" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">คู่มือการปลูกยางพารา</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-th">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber1.jpg') }}" alt="Rubber Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber2.jpg') }}" alt="Rubber Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber3.jpg') }}" alt="Land Preparation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Land+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber5.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Irrigation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber6.jpg') }}" alt="Fertilizer"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Fertilizer'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber7.jpg') }}" alt="Weed Control"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Weed+Control'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber8.jpg') }}" alt="Latex Tapping"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Latex+Tapping'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 1: ดินและสภาพอากาศ</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ดิน:</strong> เจริญเติบโตได้ดีในดินลึกที่ระบายน้ำได้ดีและอุ้มน้ำได้ดี
+                            ดินร่วนและดินร่วนปนทรายแป้งที่อุดมด้วยอินทรียวัตถุเหมาะสม หลีกเลี่ยงดินที่น้ำท่วมขัง ดินแน่น
+                            และดินที่มีหินมาก</li>
+                        <li><strong>สภาพอากาศ:</strong> ชอบสภาพอากาศเขตร้อนที่อบอุ่นและชื้น อุณหภูมิที่ต่ำมาก
+                            การขาดแคลนน้ำ และลมแรงอาจส่งผลต่อการเติบโตและผลผลิตน้ำยาง</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 2: เวลาปลูกและการเตรียมดิน
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>เวลาปลูก:</strong> การปลูกในช่วงต้นฤดูฝนช่วยให้รากตั้งตัวได้ดี
+                            ตรวจสอบให้แน่ใจว่าดินชื้นแต่ไม่ท่วมขัง</li>
+                        <li><strong>การเตรียมดิน:</strong> เคลียร์พื้นที่และจัดการวัชพืช
+                            บนพื้นที่ลาดชันให้ใช้แนวระดับเพื่อป้องกันการกัดเซาะ ขุดหลุมให้เหมาะกับรากและผสมกับปุ๋ยหมัก
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 3:
+                        การเลือกต้นกล้าและการปลูก</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การเลือกต้นกล้า:</strong> เลือกต้นกล้าที่แข็งแรงปลอดโรคหรือต้นตอที่ผ่านการรับรอง
+                            ตรวจสอบความตรงของลำต้น สภาพราก และสุขภาพใบ</li>
+                        <li><strong>การปลูก:</strong> กำหนดระยะปลูกตามสายพันธุ์ ภูมิประเทศ และการจัดการ
+                            วางต้นกล้าให้ตั้งตรงในหลุม ตรวจสอบให้แน่ใจว่ารากไม่หัก กลบดิน กดเบาๆ และรดน้ำ</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 4:
+                        การให้น้ำและการอนุรักษ์ความชื้น</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การให้น้ำ:</strong> ต้นกล้าที่เพิ่งปลูกอาจต้องรดน้ำหากฝนไม่เพียงพอ
+                            ต้องระบายน้ำได้ดีเพื่อป้องกันรากเน่า</li>
+                        <li><strong>การคลุมดิน:</strong>
+                            ใช้หญ้าแห้งหรือใบไม้คลุมรอบโคนเพื่อรักษาความชื้นและยับยั้งวัชพืช
+                            เก็บวัสดุคลุมดินให้ห่างจากลำต้น</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 5:
+                        การใส่ปุ๋ยและการควบคุมวัชพืช</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การใส่ปุ๋ย:</strong> พิจารณาจากผลการทดสอบดิน อายุต้นไม้ และคำแนะนำในท้องถิ่น
+                            ใส่ให้ทั่วบริเวณราก หลีกเลี่ยงการสัมผัสกับลำต้นโดยตรง</li>
+                        <li><strong>การควบคุมวัชพืช:</strong> กำจัดวัชพืชรอบต้นไม้เพื่อลดการแย่งน้ำและสารอาหาร
+                            ใช้การถอนด้วยมือ การตัด หรือการคลุมดิน</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 6:
+                        การป้องกันศัตรูพืชและบำรุงรักษา</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ศัตรูพืช:</strong> ติดตามโรคใบ ราก และลำต้น (สีเปลี่ยน ใบร่วง รากเน่า แผล)
+                            นำส่วนที่ได้รับผลกระทบออกและรักษาสุขอนามัยของสวน</li>
+                        <li><strong>การบำรุงรักษา:</strong> ติดตามการเติบโตเพื่อให้ลำต้นตรง
+                            ตัดแต่งกิ่งที่เสียหายหากจำเป็น บันทึกข้อมูลการระบายน้ำ วัชพืช ต้นไม้ตาย และสัญญาณศัตรูพืช
+                        </li>
+                    </ul>
+                </div>
+                <!-- Step 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 7: การกรีดยาง</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>ความพร้อม:</strong> ต้นยางจะพร้อมหลังจากผ่านไปหลายปี
+                            ไม่ควรตัดสินจากอายุเพียงอย่างเดียว ต้องพิจารณาขนาดลำต้น ความหนาของเปลือกไม้</li>
+                        <li><strong>กระบวนการกรีด:</strong> กรีดเฉพาะชั้นเปลือกที่เหมาะสมโดยไม่ทำลายเนื้อไม้
+                            การกรีดที่ไม่ถูกต้องจะลดผลผลิตในอนาคต</li>
+                    </ul>
+                </div>
+                <!-- Step 8 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="7">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">ขั้นตอนที่ 8: การจัดการและการจัดเก็บ
+                    </h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>การจัดการน้ำยาง:</strong> รวบรวมในภาชนะที่สะอาด ป้องกันสิ่งปนเปื้อน เช่น ดินและใบไม้
+                        </li>
+                        <li><strong>การแปรรูป:</strong> จัดการวัสดุและสารเคมีตามคำแนะนำด้านความปลอดภัย
+                            ห้ามผสมสารเคมีที่ไม่ทราบที่มา</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ################################################## -->
+        <!-- ၄။ တရုတ်ဘာသာ -->
+        <!-- ################################################## -->
+        <div id="content-cn" class="lang-content">
+            <div class="text-center mb-10 glass-card py-6 rounded-2xl">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 mb-3">橡胶种植综合指南</h1>
+
+            </div>
+
+            <!-- Horizontal Image Slider -->
+            <div class="image-slider mb-10" id="slider-cn">
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber1.jpg') }}" alt="Rubber Plantation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Plantation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber2.jpg') }}" alt="Rubber Nursery"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Rubber+Nursery'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber3.jpg') }}" alt="Land Preparation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Land+Preparation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber4.jpg') }}" alt="Planting"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Planting'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber5.jpg') }}" alt="Irrigation"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Irrigation'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber6.jpg') }}" alt="Fertilizer"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Fertilizer'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber7.jpg') }}" alt="Weed Control"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Weed+Control'">
+                </div>
+                <div class="slider-item">
+                    <img src="{{ url_for('static', filename='images/shared/rubber8.jpg') }}" alt="Latex Tapping"
+                        onerror="this.src='https://via.placeholder.com/1200x600/4b5563/ffffff?text=Latex+Tapping'">
+                </div>
+            </div>
+
+            <div class="space-y-8 steps-container">
+                <!-- Step 1 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="0">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第一步：土壤与气候</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>土壤：</strong>在深厚、排水良好且保水性好的土壤中生长良好。富含有机质的壤土和粉砂壤土适宜。避免积水、板结和多石的土壤。</li>
+                        <li><strong>气候：</strong>喜欢温暖湿润的热带气候。极低的温度、缺水和强风会影响生长和胶乳产量。</li>
+                    </ul>
+                </div>
+                <!-- Step 2 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第二步：种植时间与整地</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>种植时间：</strong>在雨季开始时种植有助于根系建立。确保土壤湿润但不积水。</li>
+                        <li><strong>整地：</strong>清理区域并管理杂草。在斜坡上，使用等高线防止侵蚀。挖适合根系的坑，并与堆肥混合。</li>
+                    </ul>
+                </div>
+                <!-- Step 3 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第三步：选苗与种植</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>选苗：</strong>选择健康、无病的幼苗或经过认证的芽接植物。检查茎干直立度、根系状况和叶片健康。</li>
+                        <li><strong>种植：</strong>根据品种、地形和管理确定间距。将幼苗直立放置在穴中，确保根系不弯曲。回填土壤，轻轻压实并浇水。</li>
+                    </ul>
+                </div>
+                <!-- Step 4 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="3">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第四步：灌溉与保湿</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>灌溉：</strong>如果降雨不足，新种植的幼苗可能需要浇水。确保排水良好以防根腐。</li>
+                        <li><strong>覆盖：</strong>在基部周围铺设干草或树叶以保持水分和抑制杂草。保持覆盖物远离树干。</li>
+                    </ul>
+                </div>
+                <!-- Step 5 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="4">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第五步：施肥与杂草控制</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>施肥：</strong>根据土壤测试、树龄和当地建议确定类型和数量。在根区附近均匀施用，避免直接接触树干。</li>
+                        <li><strong>杂草控制：</strong>保持树木周围区域清洁，以减少对水和养分的竞争。使用手工除草、割草或覆盖。</li>
+                    </ul>
+                </div>
+                <!-- Step 6 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="5">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第六步：病虫害防治与维护</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>病虫害：</strong>监测叶、根和茎部病害（变色、落叶、腐烂、病斑）。移除受影响部分并保持种植园卫生。</li>
+                        <li><strong>维护：</strong>监测生长以保持树干挺直。必要时修剪受损枝条。记录排水、杂草、死树和病虫害迹象。</li>
+                    </ul>
+                </div>
+                <!-- Step 7 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="6">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第七步：割胶</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>割胶准备：</strong>树木在几年后即可割胶。不要仅依赖树龄；要考虑树干大小、树皮厚度和标准。</li>
+                        <li><strong>割胶过程：</strong>只切割适当的树皮层，不要损坏木材。不正确的割胶会降低未来产量。</li>
+                    </ul>
+                </div>
+                <!-- Step 8 -->
+                <div class="step-card rounded-2xl overflow-hidden p-8" data-step="7">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-5">第八步：处理与储存</h2>
+                    <ul class="list-disc pl-6 space-y-3 text-gray-800">
+                        <li><strong>胶乳处理：</strong>在干净的容器中收集，防止土壤和树叶等污染物进入。</li>
+                        <li><strong>加工：</strong>按照安全说明处理材料和化学品。不要混合不明化学品。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t py-6 mt-12 text-center text-base text-gray-600" align="center">
+        © 2026 AgroSmart Kengtung
+    </footer>
+
+    <script>
+        // ဘာသာစကား ပြောင်းတဲ့ Function
+        function changeLanguage() {
+            var selectedLang = document.getElementById('langSelect').value;
+            document.getElementById('langSelectMobile').value = selectedLang;
+
+            var contents = document.querySelectorAll('.lang-content');
+            contents.forEach(function (content) {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + selectedLang).classList.add('active');
+
+            // ဘာသာစကားပြောင်းရင် Animation ကို အသစ်ပြန်စမယ်
+            setTimeout(initScrollAnimation, 100);
+        }
+
+        // 👇 Admin တင်ထားတဲ့ PDF ကို ရှာပြီး ချိတ်ဆက်ပေးမယ့် Function 👇
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/get_pdf/rubber')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+
+                        // PDF ရှိရင် ခလုတ်ကို ပြမယ်
+                        section.classList.remove('hidden');
+
+                        // ဖိုင်လမ်းကြောင်း ချိတ်မယ်
+                        link.href = `/static/pdfs/${data.filename}`;
+                    } else {
+                        // PDF မရှိသေးရင် ခလုတ်ကို ဖျောက်ထားမယ် (သို့မဟုတ် စာသားပြောင်းမယ်)
+                        var section = document.getElementById('pdfDownloadSection');
+                        var link = document.getElementById('downloadPdfLink');
+                        section.classList.remove('hidden');
+                        link.innerText = "PDF မရှိသေးပါ";
+                        link.classList.remove('bg-red-500', 'hover:bg-red-600');
+                        link.classList.add('bg-gray-400', 'cursor-not-allowed');
+                        link.removeAttribute('href');
+                    }
+                });
+        });
+        // 👆 ------------------------------------------------- 👆
+
+        // Scroll ဆွဲရင် စာသားနဲ့ ပုံတွေ လိုက်ပြောင်းတဲ့ Animation
+        function initScrollAnimation() {
+            var activeContent = document.querySelector('.lang-content.active');
+            if (!activeContent) return;
+
+            var steps = activeContent.querySelectorAll('.step-card');
+            var slider = activeContent.querySelector('.image-slider');
+            var sliderItems = activeContent.querySelectorAll('.slider-item');
+
+            // ပထမဆုံး Step ကို Active လုပ်ထားမယ်
+            if (steps.length > 0) {
+                steps.forEach(s => s.classList.remove('active'));
+                steps[0].classList.add('active');
+            }
+
+            // ပုံကို ရွှေ့ပေးတဲ့ Function
+            function scrollToImage(index) {
+                if (sliderItems[index] && slider) {
+                    // Slider Item ရဲ့ တကယ့် ဘယ်ဘက် အကွာအဝေးကို တွက်ချက်မယ်
+                    var targetLeft = sliderItems[index].offsetLeft - slider.offsetLeft;
+                    slider.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+
+            // Scroll လုပ်တိုင်း အလုပ်လုပ်မယ့် Function
+            window.onscroll = function () {
+                steps.forEach(function (step) {
+                    var rect = step.getBoundingClientRect();
+
+                    // မျက်နှာပြင်အလယ်လောက်မှာ ရှိနေရင် Active လုပ်မယ်
+                    if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                        steps.forEach(s => s.classList.remove('active'));
+                        step.classList.add('active');
+
+                        var stepIndex = step.getAttribute('data-step');
+                        scrollToImage(stepIndex);
+                    }
+                });
+            };
+
+            // ပထမဆုံး ပုံကို တွန်းထုတ်ပေးမယ်
+            scrollToImage(0);
+        }
+
+        // စာမျက်နှာ စတင်ပွင့်တာနဲ့ Animation စမယ်
+        window.onload = function () {
+            initScrollAnimation();
+        };
+    </script>
+</body>
+
+</html>
