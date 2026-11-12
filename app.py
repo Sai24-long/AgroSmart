@@ -18,7 +18,7 @@ from werkzeug.utils import secure_filename
 
 # Static folder ကို သတ်မှတ်ပေးရပါမယ် (ပုံတွေအတွက်)
 app = Flask(__name__, static_folder='static', static_url_path='/static')
-
+import db_setup.py
 # Session အတွက် လျှို့ဝှက်ကုဒ် (Login အတွက် မဖြစ်မနေ လိုပါတယ်)
 app.secret_key = 'agrosmart_kengtung_secret_key_2026'
 
